@@ -168,7 +168,7 @@ def basebot_qa_memory(bot_name):
 			st.session_state["memory"].save_context({"input": prompt},{"output": full_response})
 			 # Insert data into the table
 			now = datetime.now() # Using ISO format for date
-			num_tokens = len(full_response)*1.3
+			num_tokens = len(full_response + prompt)*1.3
 			#st.write(num_tokens)
 			insert_into_data_table(now.strftime("%d/%m/%Y %H:%M:%S"),  full_response, prompt, num_tokens, bot_name, feedback_value)
 			if st.session_state.visuals == True:
@@ -256,7 +256,7 @@ def basebot_memory(bot_name):
 			st.session_state["memory"].save_context({"input": prompt},{"output": full_response})
 			 # Insert data into the table
 			now = datetime.now() # Using ISO format for date
-			num_tokens = len(full_response)*1.3
+			num_tokens = len(full_response + prompt)*1.3
 			#st.write(num_tokens)
 			insert_into_data_table(now.strftime("%d/%m/%Y %H:%M:%S"),  full_response, prompt, num_tokens, bot_name, feedback_value)
 			if st.session_state.visuals == True:
@@ -321,7 +321,7 @@ def basebot(bot_name):
 				else:
 					feedback_value = 0
 				now = datetime.now() # Using ISO format for date
-			num_tokens = len(full_response)*1.3
+			num_tokens = len(full_response + prompt)*1.3
 			st.session_state.msg.append({"role": "assistant", "content": full_response})
 			insert_into_data_table(now.strftime("%d/%m/%Y %H:%M:%S"),  full_response, prompt, num_tokens, bot_name, feedback_value)
 			if st.session_state.visuals == True:
@@ -408,7 +408,7 @@ def basebot_qa(bot_name):
 			st.session_state.msg.append({"role": "assistant", "content": full_response})
 			 # Insert data into the table
 			now = datetime.now() # Using ISO format for date
-			num_tokens = len(full_response)*1.3
+			num_tokens = len(full_response + prompt)*1.3
 			#st.write(num_tokens)
 			insert_into_data_table(now.strftime("%d/%m/%Y %H:%M:%S"),  full_response, prompt, num_tokens, bot_name, feedback_value)
 			if st.session_state.visuals == True:
@@ -451,7 +451,7 @@ def search_bot():
 			st.session_state.msg.append({"role": "assistant", "content": full_response})
 			 # Insert data into the table
 			now = datetime.now() # Using ISO format for date
-			num_tokens = len(full_response)*1.3
+			num_tokens = len(full_response + prompt)*1.3
 			#st.write(num_tokens)
 			insert_into_data_table(now.strftime("%d/%m/%Y %H:%M:%S"),  full_response, prompt, num_tokens, feedback_value)
 			if st.session_state.visuals == True:

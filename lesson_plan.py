@@ -16,14 +16,14 @@ from users_module import vectorstore_selection_interface
 from main_bot import rating_component
 config = configparser.ConfigParser()
 config.read('config.ini')
-NEW_PLAN  = config['constants']['NEW_PLAN']
-FEEDBACK_PLAN = config['constants']['FEEDBACK_PLAN']
-PERSONAL_PROMPT = config['constants']['PERSONAL_PROMPT']
+
 DEFAULT_TEXT = config['constants']['DEFAULT_TEXT']
 SUBJECTS_LIST = config.get('menu_lists','SUBJECTS_SINGAPORE')
 SUBJECTS_SINGAPORE = ast.literal_eval(SUBJECTS_LIST )
-GENERATE = "Lesson Generator"
-FEEDBACK = "Lesson Feedback"
+PRI_LEVELS = [f"Primary {i}" for i in range(1, 7)]
+SEC_LEVELS = [f"Secondary {i}" for i in range(1, 6)]
+JC_LEVELS = [f"Junior College {i}" for i in range(1, 4)]
+EDUCATION_LEVELS = PRI_LEVELS + SEC_LEVELS + JC_LEVELS
 
 
 
@@ -80,19 +80,42 @@ def upload_lesson_plan():
 def lesson_collaborator():
 	st.subheader("1. Basic Lesson Information for Generator")
 	subject = st.selectbox("Choose a Subject", SUBJECTS_SINGAPORE)
-	age_or_grade = st.text_input("Age or Grade Level")
-	duration = st.text_input("Duration (in minutes)")
+	level = st.selectbox("Grade Level", EDUCATION_LEVELS)
+	lessons = st.number_input(
+		"Number of lessons/ periods", min_value=1.0, step=0.5, format='%.2f')
+	duration = st.number_input(
+		"How long is a period/ lesson (in minutes)", min_value=30, step=5, format='%i')
+	total_duration = lessons * duration
 
 	st.subheader("2. Lesson Details for Generator")
-	topic = st.text_area("Topic", help="Describe the specific topic or theme for the lesson")
-	skill_level = st.selectbox("Ability or Skill Level", ["Beginner", "Intermediate", "Advanced", "Mixed"])
-	
-	st.subheader("3. Lesson Details for Generator")
+	topic = st.text_area(
+		"Topic", help="Describe the specific topic or theme for the lesson")
+	skill_level = st.selectbox("Ability or Skill Level", [
+		"Beginner", "Intermediate", "Advanced", "Mixed"])
+
+	st.subheader("3. Learners Information for Generator")
 	prior_knowledge = st.text_area("Prior Knowledge")
 	learners_info = st.text_input("Describe the learners for this lesson")
-	incorporate_elements = st.text_area("Incorporate lesson elements")
+	success_criteria = st.text_input("What are the success criteria that can inform me that my students are learning?")
+	st.subheader("4. Skills Application")
+	kat_options = ["Support Assessment for Learning", "Foster Conceptual Change", "Provide Differentiation", "Facilitate Learning Together", "Develop Metacognition", "Enable Personalisation", "Scaffold the learning"]
+	kat =st.multiselect("Which Key Application of Technology (KAT) is your lesson focused on?", kat_options)
+	cc_21 = st.text_input("What are the 21CC (including New Media Literacies) that are important for my students to develop? ")
+	st.subheader("5. Pedagogy")
+	pedagogy = [" Blended Learning", "Concrete-Pictorial-Abstract",
+				"Flipped Learning", "Others"]
+	# Create the multiselect component
+	selected_options = st.multiselect(
+		"What teaching pedagogy will you use for your lesson ?", pedagogy)
+	other_option = ''  # Initialize the variable
+	# Others probably should be a custom component - Kahhow to refactor down the line
+	if "Others" in selected_options:
+		other_option = st.text_input("Please specify the 'Other' option:")
+	if other_option and "Others" in selected_options:  # Ensure "Others" exists before removing
+		selected_options.remove("Others")
+		selected_options.append(other_option)
 
-	#vectorstore_selection_interface(st.session_state.user['id'])
+	vectorstore_selection_interface(st.session_state.user['id'])
 
 	build = sac.buttons([
 				dict(label='Generate', icon='check-circle-fill', color = 'green'),
@@ -100,15 +123,18 @@ def lesson_collaborator():
 			], label=None, index=1, format_func='title', align='center', position='top', size='default', direction='horizontal', shape='round', type='default', compact=False)
 
 	if build != 'Cancel':
-		lesson_prompt = f"""Imagine you are an experienced teacher. Design and generate a lesson suitable for my learner based on:
+		lesson_prompt = f"""You must act as an expert teacher teaching in Singapore. I will provide you with details about my lesson, and it will be your job to think deeply and write a detailed lesson plan. I want you to design a lesson where students make sense of information and knowledge to achieve deep understanding through interacting with content, their peers or teachers and reflecting on their learning. The lesson plan should be simple yet detailed enough for any teacher to understand and carry out the lesson. At the top of the lesson plan, display the following information:
 							Subject: {subject}
 							Topic: {topic}
-							Age or Grade Level: {age_or_grade}
-							Duration: {duration} minutes
+							Grade Level: {level}
+							Duration: {total_duration} minutes spread across {lessons} of lessons
 							Skill Level: {skill_level}
+							Success Crtieria: {success_criteria}
+							Key Application of Technology (KAT): {kat}
+							2st Century Competencies (21CC) (New Media Literacies): {cc_21}
 							Description of Learners: {learners_info}
 							Student's prior knowledge: {prior_knowledge}
-							Incorporate the following lesson elements: {incorporate_elements}"""
+							Incorporate the following lesson elements: {pedagogy}."""
 		st.success("Your lesson generation information has been submitted!")
 		return lesson_prompt
 
@@ -118,24 +144,28 @@ def lesson_collaborator():
 def lesson_commentator():
 	st.subheader("1. Basic Lesson Information for Feedback")
 	subject = st.selectbox("Choose a Subject", SUBJECTS_SINGAPORE)
-	age_or_grade = st.text_input("Age or Grade Level")
+	level = st.selectbox("Choose a level", EDUCATION_LEVELS)
 	duration = st.text_input("Duration (in minutes)")
 
 	st.subheader("2. Lesson Details for Feedback")
-	topic = st.text_area("Topic", help="Describe the specific topic or theme for the lesson")
-	skill_level = st.selectbox("Ability or Skill Level", ["Beginner", "Intermediate", "Advanced", "Mixed"])
-	
+	topic = st.text_area(
+		"Topic", help="Describe the specific topic or theme for the lesson")
+	skill_level = st.selectbox("Ability or Skill Level", [
+		"Beginner", "Intermediate", "Advanced", "Mixed"])
+
 	st.subheader("3. Lesson Plan upload or key in manually")
 	lesson_plan_content = upload_lesson_plan()
-	lesson_plan = st.text_area("Please provide your lesson plan either upload or type into this text box, including details such as learning objectives, activities, assessment tasks, and any use of educational technology tools.", height=500, value=lesson_plan_content)
-	
+	lesson_plan = st.text_area(
+		"Please provide your lesson plan either upload or type into this text box, including details such as learning objectives, activities, assessment tasks, and any use of educational technology tools.", height=500, value=lesson_plan_content)
+
 	st.subheader("4. Specific questions that I would like feedback on")
-	feedback = st.text_area("Include specific information from your lesson plan that you want feedback on.")
-	
+	feedback = st.text_area(
+		"Include specific information from your lesson plan that you want feedback on.")
+
 	st.subheader("5. Learners Profile")
 	learners_info = st.text_input("Describe the learners for this lesson ")
 
-	#vectorstore_selection_interface(st.session_state.user['id'])
+	vectorstore_selection_interface(st.session_state.user['id'])
 
 	build = sac.buttons([
 				dict(label='Feedback', icon='check-circle-fill', color = 'green'),
@@ -146,7 +176,7 @@ def lesson_commentator():
 		feedback_template = f"""Imagine you are an experienced teacher. I'd like feedback on the lesson I've uploaded:
 			Subject: {subject}
 			Topic: {topic}
-			Age or Grade Level: {age_or_grade}
+			Level: {level}
 			Duration: {duration} minutes
 			Skill Level: {skill_level}
 			Lesson Plan Content: {lesson_plan}
@@ -205,97 +235,14 @@ def lesson_bot(prompt, prompt_template, bot_name):
 			st.session_state.lesson_plan  = full_response
 			 # Insert data into the table
 			now = datetime.now() # Using ISO format for date
-			num_tokens = len(full_response)*1.3
+			num_tokens = len(full_response + prompt)*1.3
 			#st.write(num_tokens)
 			insert_into_data_table(now.strftime("%d/%m/%Y %H:%M:%S"),  full_response, prompt, num_tokens, bot_name, feedback_value)
 	except Exception as e:
 		st.error(e)
 
 
-def lesson_design_map(lesson_plan):
-    """
-    Generates a prompt based on a response from a chatbot for Mermaid diagram.
-    
-    Args:
-        bot_response (str): Response from a chatbot over a topic.
 
-    Returns:
-        str: Generated prompt
-    """
-    
-    prompt = f"""Given the lesson plan that is provided below: '{lesson_plan}', 
-                 You must generate a git diagram using the Mermaid JS syntax with reference to the lesson plan above.
-                 You will need to have one main branch and create 4 branches
-				 Each new branch is called individual, group, class or community.
-				 For each of the activities in the lesson plan, you must determine how the activity is focused on the individual, group, class or community.
-				 You must create a path that maps the activities to the branches in a linear order such that each activity is mapped to one of the 4 branches.
-                 The main branch is the start lesson branch
-                 For each activity, you must create three commmit id for each activity.The first commit id is the activity name.
-                 The second commit is the lesson brief details in 3 words and the last commit is the tool used for the activity.
-				 Here is an example on how a lesson plan is mapped to a git diagram.
-				 %%{{init: {{ 'logLevel': 'debug', 'theme': 'base', 'gitGraph': {{'showBranches': true, 'showCommitLabel':true,'mainBranchName': "Class Start"}}}} }}%%
-					gitGraph
-						commit id: "Objective 1"
-						commit id: "Objective 2"
-						commit id: "Objective 3"
-						branch Class
-						commit id: "1.Activity"
-						commit id: "1.Lesson Detail"
-						commit id: "1.Tools"
-						branch Group
-						commit id: "2.Activity"
-						commit id: "2.Lesson Detail"
-						commit id: "2.Tools"
-						branch Individual
-						checkout Individual
-						commit id: "3.Activity"
-						commit id: "3.Lesson Detail"
-						commit id: "3.Tools"
-						checkout Class
-						merge Individual
-						commit id: "4.Activity"
-						commit id: "4.Lesson Detail"
-						commit id: "4.Tools"
-						branch Community
-						checkout Community
-						commit id: "5.Activity"
-						commit id: "5.Lesson Detail"
-						commit id: "5.Tools"
-						checkout Individual
-						merge Community
-						commit id: "6.Activity"
-						commit id: "6.Lesson Detail"
-						commit id: "6.Tools"
-
-				You must use the init setting of the syntax to set the gitgraph
-				You must remove the extra "{" and "}" in the syntax below.
-				You must create a new flow mermaid syntax based on the given syntax example to suit the lesson plan.
-                You must output the mermaid syntax between these special brackets with * and &: *(& MERMAID SYNTAX &)*"""
-
-    
-    return prompt
-
-
-def lesson_map_generator():
-	
-	try:
-		with st.form("Lesson Map"):
-			st.subheader("Lesson Map Generator")
-			st.write("Please input or edit the lesson plan below from the lesson generator")
-			lesson_plan = st.text_area("Lesson Plan", height=500, value= st.session_state.lesson_plan)
-			submit = st.form_submit_button("Generate Lesson Map")
-			if submit:
-				with st.status("Generating Lesson Map"):
-					diagram_prompt = lesson_design_map(lesson_plan)
-					syntax = generate_mindmap(diagram_prompt)
-				if syntax:
-					output_mermaid_diagram(syntax)
-					st.success("Lesson Map Generated!")
-					
-
-		pass
-	except Exception as e:
-		st.error(e)
 
 
 
