@@ -3,8 +3,8 @@ import streamlit as st
 from streamlit_antd_components import menu, MenuItem
 import streamlit_antd_components as sac
 from main_bot import basebot_memory, basebot_qa_memory, clear_session_states, search_bot, basebot, basebot_qa
-from kb_module import display_files,docs_uploader, delete_files
-from vs_module import display_vectorstores, create_vectorstore, delete_vectorstores
+from files_module import display_files,docs_uploader, delete_files
+from kb_module import display_vectorstores, create_vectorstore, delete_vectorstores
 from authenticate import login_function,check_password
 from class_dash import download_data_table_csv
 from lesson_plan import lesson_collaborator, lesson_commentator, lesson_bot, lesson_map_generator
@@ -165,13 +165,10 @@ def main():
 		
 		#PLEASE REMOVE ABOVE
 		with st.sidebar: #options for sidebar
+			st.image("cotf_logo.png")
 			if st.session_state.login == False:
-				image = Image.open('cotf_logo.png')
-				st.image(image)
 				st.session_state.option = menu([MenuItem('Users login', icon='people'), MenuItem('Application Info', icon='info-circle')])
 			else:
-				image = Image.open('pandai.jpeg')
-				st.image(image)
 				#can do a test if user is school is something show a different logo and set a different API key
 				if st.session_state.user['profile_id'] == SA: #super admin login feature
 					# Initialize the session state for function options	
