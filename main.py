@@ -165,8 +165,9 @@ def main():
 		
 		#PLEASE REMOVE ABOVE
 		with st.sidebar: #options for sidebar
-			st.image("cotf_logo.png")
+			
 			if st.session_state.login == False:
+				st.image("cotf_logo.png")
 				st.session_state.option = menu([MenuItem('Users login', icon='people'), MenuItem('Application Info', icon='info-circle')])
 			else:
 				#can do a test if user is school is something show a different logo and set a different API key
