@@ -145,7 +145,8 @@ def lesson_commentator():
 	st.subheader("1. Basic Lesson Information for Feedback")
 	subject = st.selectbox("Choose a Subject", SUBJECTS_SINGAPORE)
 	level = st.selectbox("Choose a level", EDUCATION_LEVELS)
-	duration = st.text_input("Duration (in minutes)")
+	duration = st.number_input(
+		"How long is a period/ lesson (in minutes)", min_value=30, step=5, format='%i')
 
 	st.subheader("2. Lesson Details for Feedback")
 	topic = st.text_area(
