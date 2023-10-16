@@ -581,7 +581,8 @@ def vectorstore_selection_interface(user_id):
     """
     Display Streamlit interface for vectorstore selection.
     """
-    available_vectorstores = load_available_shared_owned_vector_stores(user_id)
+    vectorstores = load_available_shared_owned_vector_stores(user_id)
+    available_vectorstores = list(set(vectorstores))
 
     st.subheader("Select knowledge base for the Bot:")
     st.write(f"Current loaded Knowledge Base: **:blue[{st.session_state.current_model}]**")
