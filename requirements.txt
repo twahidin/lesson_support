@@ -125,6 +125,7 @@ streamlit-antd-components==0.2.2
 sympy==1.12
 tabulate==0.9.0
 tenacity==8.2.3
+tiktoken==0.5.1
 timm==0.9.7
 tokenizers==0.14.1
 toml==0.10.2
