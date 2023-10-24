@@ -340,4 +340,5 @@ def db_was_modified(database_name):
         return False
     was_modified = db_was_modified.last_timestamp != current_timestamp
     db_was_modified.last_timestamp = current_timestamp
+    st.write(f"Database was modified: {was_modified}")
     return was_modified

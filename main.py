@@ -466,28 +466,31 @@ def main():
 			pass
 
 		elif st.session_state.option == 'Logout':
-			if check_aws_secrets_exist():
-				if db_was_modified(DEFAULT_DB):
+			if db_was_modified(DEFAULT_DB):
+				if check_aws_secrets_exist():
 					backup_s3_database()
 					for key in st.session_state.keys():
 						del st.session_state[key]
 					st.rerun()
-			else:
-				if st.session_state.user['profile_id'] == SA:
-					if db_was_modified(DEFAULT_DB):
-						st.write("There is a change in the database, please download a copy of the database")
-						on = st.toggle('I do not want to download a copy of the database')
-						if on:
-							for key in st.session_state.keys():
-								del st.session_state[key]
-							st.rerun()
-						else:
-							download_database()
-							for key in st.session_state.keys():
-								del st.session_state[key]
-							st.rerun()
+				elif st.session_state.user['profile_id'] == SA:
+					on = st.toggle('I do not want to download a copy of the database')
+					if on:
+						for key in st.session_state.keys():
+							del st.session_state[key]
+						st.rerun()
+					else:
+						download_database()
+						for key in st.session_state.keys():
+							del st.session_state[key]
+						st.rerun()
 				else:
+					for key in st.session_state.keys():
+						del st.session_state[key]
 					st.rerun()
+			else:
+				for key in st.session_state.keys():
+					del st.session_state[key]
+				st.rerun()
 					
 	except Exception as e:
 		st.exception(e)
