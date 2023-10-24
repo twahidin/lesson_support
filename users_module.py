@@ -215,6 +215,7 @@ def create_prompt_template(user_id):
                  # Update st.session_state
                 session_key = selected_template_name.replace(" ", "_").lower()
                 st.session_state[session_key] = new_prompt_description
+                
                 # Inform the user of successful update
                 st.write("Successfully updated the description.")
             else:

@@ -2,3 +2,7 @@ secrets.toml
 .venv/
 *.csv
 References/
+database/
+lesson_plan/
+output.docx
+output.md
