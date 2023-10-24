@@ -7,10 +7,21 @@ from files_module import display_files,docs_uploader, delete_files
 from kb_module import display_vectorstores, create_vectorstore, delete_vectorstores
 from authenticate import login_function,check_password
 from class_dash import download_data_table_csv
-from lesson_plan import lesson_collaborator, lesson_commentator, lesson_bot, lesson_map_generator
+from lesson_plan import lesson_collaborator, lesson_commentator, lesson_bot, lesson_map_generator, lesson_design_options
 #New schema move function fom settings
 from database_schema import create_dbs
-from database_module import manage_tables, delete_tables
+
+from database_module import (
+	manage_tables, 
+	delete_tables, 
+	download_database, 
+	upload_database, 
+	upload_s3_database, 
+	download_from_s3_and_unzip, 
+	check_aws_secrets_exist,
+	backup_s3_database,
+	db_was_modified
+	)
 from org_module import (
 	has_at_least_two_rows,
 	initialise_admin_account,
@@ -65,6 +76,7 @@ st.set_page_config(layout="wide")
 DEFAULT_TITLE = st.secrets["default_title"]
 SUPER_PWD = st.secrets["super_admin_password"]
 SUPER = st.secrets["super_admin"]
+DEFAULT_DB = st.secrets["default_db"]
 
 # Fetching values from config.ini
 DEFAULT_TEXT = config_handler.get_value('constants', 'DEFAULT_TEXT')
@@ -93,7 +105,9 @@ def is_function_disabled(function_name):
 
 def initialize_session_state( menu_funcs, default_value):
 	st.session_state.func_options = {key: default_value for key in menu_funcs.keys()}
-	
+
+
+
 
 def main():
 	try:
@@ -157,6 +171,18 @@ def main():
 		if "func_options" not in st.session_state:
 			st.session_state.func_options = {}
 			initialize_session_state(MENU_FUNCS, True)
+		
+		if "lesson_col_prompt" not in st.session_state:
+			st.session_state.lesson_col_prompt = False
+
+		if "lesson_col_option" not in st.session_state:
+			st.session_state.lesson_col_option = 'Cancel'
+		
+		if "generated_flag" not in st.session_state:
+			st.session_state.generated_flag = False
+		
+		if "button_text" not in st.session_state:
+			st.session_state.button_text = "Cancel"
 
 		create_dbs()
 		initialise_admin_account()
@@ -237,9 +263,13 @@ def main():
 		#Lesson Assistant
 		elif st.session_state.option == "Lesson Collaborator":
 			st.subheader(f":green[{st.session_state.option}]")	
-			prompt = lesson_collaborator()
-			if prompt:
-				lesson_bot(prompt, st.session_state.lesson_collaborator, LESSON_COLLAB)	
+			st.session_state.lesson_col_prompt = lesson_collaborator()
+			if st.session_state.lesson_col_prompt:
+				#st.write("I am here", st.session_state.lesson_col_prompt)
+				lesson_bot(st.session_state.lesson_col_prompt, st.session_state.lesson_collaborator, LESSON_COLLAB)
+			lesson_design_options()
+			
+
 					
 		elif st.session_state.option == "Lesson Commentator":
 			st.subheader(f":green[{st.session_state.option}]")
@@ -257,7 +287,7 @@ def main():
 								sac.ButtonsItem(label='Collaborator Mode', icon='person-hearts',color='green'),
 								sac.ButtonsItem(label='Default', icon='person-fill',color='blue'),
 								sac.ButtonsItem(label='Commentator Mode', icon='person-plus-fill',color='red'),
-							], index=1,format_func='title', align='center', size='small', type='primary')
+							], index=1,format_func='title', align='center', size='small', type='default')
 			sac.divider(label='Chabot Settings', icon='robot', align='center', direction='horizontal', dashed=False, bold=False)
 
 			if choice == "Collaborator Mode":
@@ -410,6 +440,13 @@ def main():
 						st.subheader(":red[Managing SQL Schema Tables]")
 						st.warning("Please do not use this function unless you know what you are doing")
 						if st.checkbox("I know how to manage SQL Tables"):
+							st.subheader(":red[Zip Database - Download and upload a copy of the database]")
+							download_database()
+							upload_database()
+							if check_aws_secrets_exist():
+								st.subheader(":red[Upload Database to S3 - Upload a copy of the database to S3]")
+								upload_s3_database()
+								download_from_s3_and_unzip()
 							st.subheader(":red[Display and Edit Tables - please do so if you have knowledge of the current schema]")
 							manage_tables()
 							st.subheader(":red[Delete Table - Warning please use this function with extreme caution]")
@@ -429,10 +466,29 @@ def main():
 			pass
 
 		elif st.session_state.option == 'Logout':
-			for key in st.session_state.keys():
-				del st.session_state[key]
-			st.rerun()
-			pass
+			if check_aws_secrets_exist():
+				if db_was_modified(DEFAULT_DB):
+					backup_s3_database()
+					for key in st.session_state.keys():
+						del st.session_state[key]
+					st.rerun()
+			else:
+				if st.session_state.user['profile_id'] == SA:
+					if db_was_modified(DEFAULT_DB):
+						st.write("There is a change in the database, please download a copy of the database")
+						on = st.toggle('I do not want to download a copy of the database')
+						if on:
+							for key in st.session_state.keys():
+								del st.session_state[key]
+							st.rerun()
+						else:
+							download_database()
+							for key in st.session_state.keys():
+								del st.session_state[key]
+							st.rerun()
+				else:
+					st.rerun()
+					
 	except Exception as e:
 		st.exception(e)
 
