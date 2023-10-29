@@ -236,45 +236,49 @@ def update_prompt_template(profile_id, school_id_of_AD=None):
         cursor = conn.cursor()
 
         selected_school_id = None
-        if profile_id == 'SA':
+        if profile_id == SA:
             # Fetch all schools
             cursor.execute("SELECT school_id, school_name FROM Schools")
             schools = cursor.fetchall()
             school_choices = {school[1]: school[0] for school in schools}
             selected_school_name = st.selectbox("Select School:", list(school_choices.keys()))
             selected_school_id = school_choices[selected_school_name]
-        elif profile_id == 'AD':
+        elif profile_id == AD:
             selected_school_id = school_id_of_AD
 
         # Fetch profiles except SA and AD
         cursor.execute("SELECT profile_id, profile_name FROM Profile WHERE profile_id NOT IN (?, ?)", (SA, AD))
         profiles = cursor.fetchall()
         profile_choices = {profile[1]: profile[0] for profile in profiles}
-        profile_choices["All Users"] = None  # Add "All Users" option
-        selected_profile_name = st.selectbox("Select Profile (Excludes SA & AD):", list(profile_choices.keys()))
-        selected_profile_id = profile_choices[selected_profile_name]
-
-        st.markdown("---")
-        btn_process = st.button("Update Templates Based on Filter")
-
+        #profile_choices["All Users"] = None  # Add "All Users" option
+        #selected_profile_name = st.selectbox("Select Profile (Excludes SA & AD):", list(profile_choices.keys()))
+        multiselect_profile_names = st.multiselect("Select Profiles (Excludes SA & AD):", list(profile_choices.keys()))
+        #selected_profile_id = multiselect_profile_names
+        #st.write("school id:", selected_school_id)
+        #st.write("profile id:", multiselect_profile_names)
+        #st.write("Profile choices:", profile_choices)
+        btn_process = st.button("Update Templates for profile")
+        st.divider()
         if btn_process:
             # Fetching user IDs based on filters
-            query = """
-                SELECT user_id 
-                FROM Users 
-                WHERE (school_id = ?) 
-                AND (profile_id = ? OR ? IS NULL)
-                AND profile_id NOT IN (?, ?)
-            """
-            cursor.execute(query, (selected_school_id, selected_profile_id, selected_profile_id, SA, AD))
-            user_ids = [row[0] for row in cursor.fetchall()]
+            for profile_name in multiselect_profile_names:
+                if profile_name in profile_choices:
+                    profile_id = profile_choices[profile_name]
+                    query = """
+                        SELECT user_id 
+                        FROM Users 
+                        WHERE (school_id = ?) 
+                        AND (profile_id = ?)
+                    """
+                    cursor.execute(query, (selected_school_id, profile_id))
+                    user_ids = [row[0] for row in cursor.fetchall()]
+                    #st.write("User IDs:", user_ids)
+                    default_description = "Default description for the template."
+                    for user_id in user_ids:
+                        cursor.execute("UPDATE Prompt_Templates SET prompt_description = ? WHERE user_id = ?", (default_description, user_id))
 
-            default_description = "Default description for the template."
-            for user_id in user_ids:
-                cursor.execute("UPDATE Prompt_Templates SET prompt_description = ? WHERE user_id = ?", (default_description, user_id))
-
-            conn.commit()
-            st.success(f"Prompt templates for users matching the filter have been updated successfully!")
+                    conn.commit()
+                    st.success(f"Prompt templates for users matching the filter have been updated successfully!")
             
 #not in use part of the preload 
 def load_prompt_templates(user_id):
