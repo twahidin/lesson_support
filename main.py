@@ -341,8 +341,9 @@ def main():
 		elif st.session_state.option == 'Bot & Prompt Management': #ensure that it is for administrator or super_admin
 			if st.session_state.user['profile_id'] == SA or st.session_state.user['profile_id'] == AD:
 				st.subheader(f":green[{st.session_state.option}]")
-				create_prompt_template(st.session_state.user['id'])
-				update_prompt_template(st.session_state.user['profile_id'])
+				templates = create_prompt_template(st.session_state.user['id'])
+				# st.write("Templates created: ", templates)
+				update_prompt_template(st.session_state.user['profile_id'], templates)
 				st.subheader("OpenAI Chatbot Parameters Settings")
 				bot_settings_interface(st.session_state.user['profile_id'], st.session_state.user['school_id'])
 			else:

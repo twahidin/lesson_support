@@ -13,7 +13,6 @@ import configparser
 import os
 import ast
 from users_module import vectorstore_selection_interface
-from main_bot import rating_component
 import random
 import string
 from Markdown2docx import Markdown2docx
@@ -23,6 +22,8 @@ config = configparser.ConfigParser()
 config.read('config.ini')
 
 DEFAULT_TEXT = config['constants']['DEFAULT_TEXT']
+LESSON_COLLAB = config['constants']['LESSON_COLLAB']
+LESSON_COMMENT = config['constants']['LESSON_COMMENT']
 SUBJECTS_LIST = config.get('menu_lists','SUBJECTS_SINGAPORE')
 SUBJECTS_SINGAPORE = ast.literal_eval(SUBJECTS_LIST )
 PRI_LEVELS = [f"Primary {i}" for i in range(1, 7)]
@@ -60,6 +61,16 @@ def generate_random_string(length):
 	# Randomly choose characters from letters for the given length of the string
 	random_string = ''.join(random.choice(letters) for i in range(length))
 	return random_string
+
+#response rating component	
+def commentator_rating():
+	rating_value = sac.rate(label='Lesson Commentator Ratings:', position='left', clear=True, value=2.5, align='left', size=15, color='#25C3B0', half=True, key=1)
+	return rating_value
+
+def generator_rating():
+	rating_value = sac.rate(label='Lesson Generator Ratings:', position='left', clear=True, value=2.5, align='left', size=15, color='#25C3B0', half=True, key=2)
+	return rating_value
+
 
 #direct load into form 
 def upload_lesson_plan():
@@ -136,10 +147,10 @@ def lesson_collaborator():
 	# 	selected_options.append(other_option)
 	st.write(st.session_state.lesson_col_option)
 	vectorstore_selection_interface(st.session_state.user['id'])
-
+	#if st.button("Submit for Feedback", key=1):
 	st.session_state.lesson_col_option = sac.buttons([
-				dict(label='Generate', icon='check-circle-fill', color = 'green', disabled = st.session_state.generated_flag),
-				dict(label=st.session_state.button_text, icon='x-circle-fill', color='red'),
+				sac.ButtonsItemt(label='Generate', icon='check-circle-fill', color = 'green', disabled = st.session_state.generated_flag),
+				sac.ButtonsItem(label=st.session_state.button_text, icon='x-circle-fill', color='red'),
 			], label=None, index=1, format_func='title', align='center', position='top', size='default', direction='horizontal', shape='round', type='default', compact=False)
 
 	if st.session_state.lesson_col_option == 'Generate':
@@ -205,10 +216,10 @@ def lesson_bot(prompt, prompt_template, bot_name):
 			for response in template_prompt(prompt, reference_prompt + prompt_template):
 				full_response += response.choices[0].delta.get("content", "")
 				message_placeholder.markdown(full_response + "▌")
-				if st.session_state.rating == True:
-					feedback_value = rating_component()
-				else:
-					feedback_value = 0
+			if bot_name == LESSON_COLLAB:
+				feedback_value = generator_rating()
+			else:
+				feedback_value = commentator_rating()
 			message_placeholder.markdown(full_response)
 			st.session_state.msg.append({"role": "assistant", "content": full_response})
 			st.session_state["memory"].save_context({"input": prompt},{"output": full_response})
@@ -369,8 +380,8 @@ def lesson_commentator():
 
 	vectorstore_selection_interface(st.session_state.user['id'])
 	build = sac.buttons([
-				dict(label='Feedback', icon='check-circle-fill', color = 'green'),
-				dict(label='Cancel', icon='x-circle-fill', color='red'),
+				sac.ButtonsItem(label='Feedback', icon='check-circle-fill', color = 'green'),
+				sac.ButtonsItem(label='Cancel', icon='x-circle-fill', color='red'),
 			], label=None, index=1, format_func='title', align='center', position='top', size='default', direction='horizontal', shape='round', type='default', compact=False)
 
 	if build != 'Cancel':
@@ -388,3 +399,8 @@ def lesson_commentator():
 		return feedback_template
 
 	return False
+
+def generate_random_key(length=4):
+    """Generate a random alphanumeric key of given length."""
+    chars = string.ascii_letters + string.digits  # All alphanumeric characters
+    return ''.join(random.choice(chars) for _ in range(length))

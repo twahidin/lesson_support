@@ -206,11 +206,14 @@ def create_org_structure():
 
 		# When the submit button is pressed
 		if st.button('Submit'):
+			# Check if school with the same name already exists for the organization
 			cursor.execute("SELECT school_name FROM Schools WHERE LOWER(school_name) = ?", (school_name.lower(),))
 			existing_school = cursor.fetchone()
 
 			if existing_school:
 				st.warning(f"School {school_name} already exists. Please choose a different name")
+				
+
 			else:
 				cursor.execute("INSERT INTO Schools (org_id, school_name) VALUES ((SELECT org_id FROM Organizations WHERE org_name = ?), ?)", (org_name, school_name))
 				student_counter = 1

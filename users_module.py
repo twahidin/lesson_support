@@ -192,7 +192,8 @@ def create_prompt_template(user_id):
         ''', (user_id,))
         templates = cursor.fetchall()
         template_names = [template[1] for template in templates]
-
+        
+        
         # Replace text_input with selectbox for prompt_name
         selected_template_name = st.selectbox("Select a template name", template_names)
 
@@ -220,9 +221,10 @@ def create_prompt_template(user_id):
                 st.write("Successfully updated the description.")
             else:
                 st.write("Ensure that the description field is not blank!")
+        return templates
 
 
-def update_prompt_template(profile_id, school_id_of_AD=None):
+def update_prompt_template(profile_id, templates):
     """
     Display the UI to update prompt templates in Streamlit based on filter.
 
@@ -244,7 +246,7 @@ def update_prompt_template(profile_id, school_id_of_AD=None):
             selected_school_name = st.selectbox("Select School:", list(school_choices.keys()))
             selected_school_id = school_choices[selected_school_name]
         elif profile_id == AD:
-            selected_school_id = school_id_of_AD
+            selected_school_id = st.session_state.user['school_id']
 
         # Fetch profiles except SA and AD
         cursor.execute("SELECT profile_id, profile_name FROM Profile WHERE profile_id NOT IN (?, ?)", (SA, AD))
@@ -254,9 +256,9 @@ def update_prompt_template(profile_id, school_id_of_AD=None):
         #selected_profile_name = st.selectbox("Select Profile (Excludes SA & AD):", list(profile_choices.keys()))
         multiselect_profile_names = st.multiselect("Select Profiles (Excludes SA & AD):", list(profile_choices.keys()))
         #selected_profile_id = multiselect_profile_names
-        #st.write("school id:", selected_school_id)
-        #st.write("profile id:", multiselect_profile_names)
-        #st.write("Profile choices:", profile_choices)
+        # st.write("school id:", selected_school_id)
+        # st.write("profile id:", multiselect_profile_names)
+        # st.write("Profile choices:", profile_choices)
         btn_process = st.button("Update Templates for profile")
         st.divider()
         if btn_process:
@@ -272,12 +274,34 @@ def update_prompt_template(profile_id, school_id_of_AD=None):
                     """
                     cursor.execute(query, (selected_school_id, profile_id))
                     user_ids = [row[0] for row in cursor.fetchall()]
-                    #st.write("User IDs:", user_ids)
-                    default_description = "Default description for the template."
+                    # st.write("User IDs:", user_ids)
                     for user_id in user_ids:
-                        cursor.execute("UPDATE Prompt_Templates SET prompt_description = ? WHERE user_id = ?", (default_description, user_id))
+                        # Check if the user has an existing prompt template
+                        for template_data in templates:
+                            template_name = template_data[1]
+                            template_description = template_data[2]
+                            # Check if this template name exists for the current user
+                            cursor.execute('''
+                                SELECT COUNT(1) 
+                                FROM Prompt_Templates 
+                                WHERE user_id = ? AND prompt_template = ?
+                            ''', (user_id, template_name))
+                            exists = cursor.fetchone()[0]
 
-                    conn.commit()
+                            if exists:
+                                # Update the existing row with the current description
+                                cursor.execute('''
+                                    UPDATE Prompt_Templates 
+                                    SET prompt_description = ? 
+                                    WHERE user_id = ? AND prompt_template = ?
+                                ''', (template_description, user_id, template_name))
+                            else:
+                                # Insert a new row if it doesn't exist for this user
+                                cursor.execute('''
+                                    INSERT INTO Prompt_Templates (user_id, prompt_description, prompt_template) 
+                                    VALUES (?, ?, ?)
+                                ''', (user_id, template_description, template_name))
+                        conn.commit()
                     st.success(f"Prompt templates for users matching the filter have been updated successfully!")
             
 #not in use part of the preload 
