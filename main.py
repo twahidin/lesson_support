@@ -173,6 +173,9 @@ def main():
 			st.session_state.func_options = {}
 			initialize_session_state(MENU_FUNCS, True)
 		
+		if "tools" not in st.session_state:
+			st.session_state.tools = []
+		
 		if "lesson_col_prompt" not in st.session_state:
 			st.session_state.lesson_col_prompt = False
 

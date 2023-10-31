@@ -38,11 +38,9 @@ def wiki_search(query: str) -> str:
 
 @tool("Image Generator")
 def dalle_image_generator(query):
-	openai.api_key = return_api_key()
-	os.environ["OPENAI_API_KEY"] = return_api_key()
 	"Use this function to generate images from text"
 	response = openai.Image.create(
-	prompt=query,
+	prompt=query,                  
 	n=1,
 	size="1024x1024"
 	)
@@ -102,10 +100,6 @@ def agent_bot():
 			st.session_state.steps[str(len(msgs.messages) - 1)] = response[
 				"intermediate_steps"
 			]
-
-
-
-			
 
 def agent_management():
 	display_vectorstores()
