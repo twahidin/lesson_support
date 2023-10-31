@@ -149,7 +149,7 @@ def lesson_collaborator():
 	vectorstore_selection_interface(st.session_state.user['id'])
 	#if st.button("Submit for Feedback", key=1):
 	st.session_state.lesson_col_option = sac.buttons([
-				sac.ButtonsItemt(label='Generate', icon='check-circle-fill', color = 'green', disabled = st.session_state.generated_flag),
+				sac.ButtonsItem(label='Generate', icon='check-circle-fill', color = 'green', disabled = st.session_state.generated_flag),
 				sac.ButtonsItem(label=st.session_state.button_text, icon='x-circle-fill', color='red'),
 			], label=None, index=1, format_func='title', align='center', position='top', size='default', direction='horizontal', shape='round', type='default', compact=False)
 

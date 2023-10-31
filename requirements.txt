@@ -151,7 +151,10 @@ unstructured-inference==0.7.3
 unstructured.pytesseract==0.3.12
 urllib3==2.0.6
 validators==0.22.0
+watchdog==3.0.0
+wikipedia==1.4.0
 xlrd==2.0.1
 XlsxWriter==3.1.8
 yarl==1.9.2
+youtube-search==2.1.2
 zipp==3.17.0

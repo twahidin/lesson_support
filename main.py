@@ -7,6 +7,7 @@ from files_module import display_files,docs_uploader, delete_files
 from kb_module import display_vectorstores, create_vectorstore, delete_vectorstores
 from authenticate import login_function,check_password
 from class_dash import download_data_table_csv
+from agent import agent_bot, agent_management
 from lesson_plan import lesson_collaborator, lesson_commentator, lesson_bot, lesson_map_generator, lesson_design_options
 #New schema move function fom settings
 from database_schema import create_dbs
@@ -336,7 +337,10 @@ def main():
 					basebot_memory(LESSON_BOT) #chatbot with no knowledge base but with memory
 		elif st.session_state.option == "Prototype Chatbot":
 			st.subheader(f":green[{st.session_state.option}]")
-			st.write(":blue[Smart Agent Prototype - Available soon in the next release]")
+			if st.session_state.tools == []:
+				st.warning("Please set your tool under Agent Management")
+			else:
+				agent_bot()
 			
 		elif st.session_state.option == 'Bot & Prompt Management': #ensure that it is for administrator or super_admin
 			if st.session_state.user['profile_id'] == SA or st.session_state.user['profile_id'] == AD:
@@ -346,6 +350,9 @@ def main():
 				update_prompt_template(st.session_state.user['profile_id'], templates)
 				st.subheader("OpenAI Chatbot Parameters Settings")
 				bot_settings_interface(st.session_state.user['profile_id'], st.session_state.user['school_id'])
+				st.divider()
+				st.subheader("Agent Management")
+				agent_management()
 			else:
 				st.subheader(f":red[This option is accessible only to administrators only]")
 		
