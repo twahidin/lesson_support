@@ -137,26 +137,30 @@ def bot_settings_interface(profile_id, school_id=None):
 			st.session_state.temp = temp
 			st.session_state.presence_penalty = presence_penalty
 			st.session_state.frequency_penalty = frequency_penalty
+			store_bot_settings(st.session_state.user['id'], temp, presence_penalty, frequency_penalty)
 			st.success("Parameters saved!")
+			if should_propagate:
+				with sqlite3.connect(WORKING_DATABASE) as conn:
+					cursor = conn.cursor()
 
-		with sqlite3.connect(WORKING_DATABASE) as conn:
-			cursor = conn.cursor()
-
-			# Logic for handling SA and AD profiles:
-			if profile_id == SA:
-				# Fetch all schools for SA to select from
-				cursor.execute("SELECT school_id, school_name FROM Schools")
-				schools = cursor.fetchall()
-				school_choices = {school[1]: school[0] for school in schools}
-				selected_school_name = st.selectbox("Select School for Propagation:", list(school_choices.keys()))
-				selected_school_id = school_choices[selected_school_name]
-			elif profile_id == AD:
-				# AD can only propagate to their school, so no need for a selectbox
-				selected_school_id = school_id
-				st.write(f"You're set to propagate settings to school with ID: {school_id}")
-			
-			if submit_button:
-				store_bot_settings(st.session_state.user['id'], temp, presence_penalty, frequency_penalty)
-				if should_propagate:
-					propagate_bot_settings(profile_id, temp, presence_penalty, frequency_penalty, selected_school_id)
-				st.success("Parameters saved!")
+					# Logic for handling SA and AD profiles:
+					if profile_id == SA:
+						# Fetch all schools for SA to select from
+						cursor.execute("SELECT school_id, school_name FROM Schools")
+						schools = cursor.fetchall()
+						school_choices = {school[1]: school[0] for school in schools}
+						selected_school_name = st.selectbox("Select School for Propagation:", list(school_choices.keys()))
+						if selected_school_name == None:
+							st.error("Please create a new school first.")
+						else:	
+							selected_school_id = school_choices[selected_school_name]
+							propagate_bot_settings(profile_id, temp, presence_penalty, frequency_penalty, selected_school_id)
+							st.success("Propagate complete")
+						
+					elif profile_id == AD:
+						# AD can only propagate to their school, so no need for a selectbox
+						selected_school_id = school_id
+						st.write(f"You're set to propagate settings to school with ID: {school_id}")
+						selected_school_id = school_choices[selected_school_name]
+						propagate_bot_settings(profile_id, temp, presence_penalty, frequency_penalty, selected_school_id)
+						st.success("Propagate complete")
