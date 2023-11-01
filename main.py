@@ -7,7 +7,7 @@ from files_module import display_files,docs_uploader, delete_files
 from kb_module import display_vectorstores, create_vectorstore, delete_vectorstores
 from authenticate import login_function,check_password
 from class_dash import download_data_table_csv
-from agent import agent_bot, agent_management, wiki_search, DuckDuckGoSearchRun, YouTubeSearchTool
+from agent import agent_bot, agent_management, wiki_search, YouTubeSearchTool, DuckDuckGoSearchRun
 from lesson_plan import lesson_collaborator, lesson_commentator, lesson_bot, lesson_map_generator, lesson_design_options
 #New schema move function fom settings
 from database_schema import create_dbs
@@ -340,14 +340,9 @@ def main():
 					basebot_memory(LESSON_BOT) #chatbot with no knowledge base but with memory
 		elif st.session_state.option == "Prototype Chatbot":
 			if st.session_state.tools == []:
-				st.warning("Loading default tools, you may select your tools in Bot & Prompt management")
-				all_tools = {
-					"Wiki Search": wiki_search,
-					"Internet Search": DuckDuckGoSearchRun(name="Internet Search"),
-					"YouTube Search": YouTubeSearchTool(),
-				
-				}
-				st.session_state.tools = all_tools
+				st.warning("Loading Wiki Search, Internet Search and YouTube Search, you may select your tools in Bot & Prompt management")
+				if st.session_state.tools == []:
+					st.session_state.tools =  [wiki_search, DuckDuckGoSearchRun(name="Internet Search"), YouTubeSearchTool()]
 				agent_bot()
 			else:
 				agent_bot()

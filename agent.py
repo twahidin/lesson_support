@@ -51,7 +51,6 @@ def agent_bot():
 	st.subheader("Smart Bot with Tools")
 	openai.api_key = return_api_key()
 	os.environ["OPENAI_API_KEY"] = return_api_key()
-
 	msgs = StreamlitChatMessageHistory()
 	memory = ConversationBufferMemory(
 		chat_memory=msgs,
