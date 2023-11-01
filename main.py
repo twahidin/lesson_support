@@ -340,7 +340,7 @@ def main():
 					basebot_memory(LESSON_BOT) #chatbot with no knowledge base but with memory
 		elif st.session_state.option == "Prototype Chatbot":
 			if st.session_state.tools == []:
-				st.warning("Loading Wiki Search, Internet Search and YouTube Search, you may select your tools in Bot & Prompt management")
+				st.warning("Loading Wikipedia Search, Internet Search and YouTube Search, you may select your tools in Bot & Prompt management")
 				if st.session_state.tools == []:
 					st.session_state.tools =  [wiki_search, DuckDuckGoSearchRun(name="Internet Search"), YouTubeSearchTool()]
 				agent_bot()
