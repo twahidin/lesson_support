@@ -99,6 +99,7 @@ REFLECTIVE = config_handler.get_value('constants', 'REFLECTIVE')
 CONVERSATION = config_handler.get_value('constants', 'CONVERSATION')
 MINDMAP = config_handler.get_value('constants', 'MINDMAP')
 METACOG = config_handler.get_value('constants', 'METACOG')
+ACK = config_handler.get_value('application_agreement', 'ACK')
 
 def is_function_disabled(function_name):
 	return st.session_state.func_options.get(function_name, True)
@@ -130,6 +131,9 @@ def main():
 		if "user" not in st.session_state:
 			st.session_state.user = None
 		
+		if "start" not in st.session_state:
+			st.session_state.start = 0
+		
 		if "openai_model" not in st.session_state:
 			st.session_state.openai_model = st.secrets["default_model"]
 
@@ -144,6 +148,9 @@ def main():
 
 		if "temp" not in st.session_state:
 			st.session_state.temp = st.secrets["default_temp"]
+		
+		if "acknowledgement" not in st.session_state:
+			st.session_state.acknowledgement = False
 		
 		if "frequency_penalty" not in st.session_state:
 			st.session_state.frequency_penalty = st.secrets["default_frequency_penalty"]
@@ -198,14 +205,17 @@ def main():
 			
 			if st.session_state.login == False:
 				st.image("cotf_logo.png")
-				st.session_state.option = menu([MenuItem('Users login', icon='people'), MenuItem('Application Info', icon='info-circle')])
+				st.session_state.option = menu([MenuItem('Users login', icon='people')])
 			else:
 				#can do a test if user is school is something show a different logo and set a different API key
 				if st.session_state.user['profile_id'] == SA: #super admin login feature
 					# Initialize the session state for function options	
 					initialize_session_state(MENU_FUNCS, False)
 				else:
-					set_function_access_for_user(st.session_state.user['id'])
+					if st.session_state.acknowledgement == False:
+						initialize_session_state(MENU_FUNCS, True)
+					else:
+						set_function_access_for_user(st.session_state.user['id'])
 					# Using the is_function_disabled function for setting the `disabled` attribute
 				st.session_state.option = sac.menu([
 					sac.MenuItem('Home', icon='house', children=[
@@ -234,24 +244,42 @@ def main():
 					sac.MenuItem('Profile Settings', icon='gear'),
 					sac.MenuItem('Application Info', icon='info-circle'),
 					sac.MenuItem('Logout', icon='box-arrow-right'),
-				], index=1, format_func='title', open_all=False)
+				], index=st.session_state.start, format_func='title', open_all=False)
 
 		if st.session_state.option == 'Users login':
 				col1, col2 = st.columns([3,4])
-				placeholder2 = st.empty()
-				with placeholder2:
+				placeholder = st.empty()
+				with placeholder:
 					with col1:
 						if login_function() == True:
-							placeholder2.empty()
-							st.session_state.login = True
 							st.session_state.user = load_user_profile(st.session_state.user)
 							pre_load_variables(st.session_state.user['id'])
 							load_and_fetch_vectorstore_for_user(st.session_state.user['id'])
 							load_bot_settings(st.session_state.user['id'])
+							st.session_state.login = True
+							placeholder.empty()
 							st.rerun()
 					with col2:
 						pass
-				
+		elif st.session_state.option == 'Home':
+			col1, col2 = st.columns([3,1])
+			with col1:
+				st.subheader("Acknowledgement on the use of Generative AI with Large Language Models")
+				initialize_session_state(MENU_FUNCS, True)
+				st.write(ACK)
+				ack = st.checkbox("I acknowledge the above information")
+				if ack:
+					st.session_state.acknowledgement = True
+					set_function_access_for_user(st.session_state.user['id'])
+					st.session_state.start = 1
+					st.rerun()
+				else:
+					st.warning("Please acknowledge the above information before you proceed")
+					initialize_session_state(MENU_FUNCS, True)
+					st.stop()
+				pass
+			with col2:
+				pass
 		
 		#Personal Dashboard
 		elif st.session_state.option == 'Class Dashboard':
@@ -341,8 +369,7 @@ def main():
 		elif st.session_state.option == "Prototype Chatbot":
 			if st.session_state.tools == []:
 				st.warning("Loading Wikipedia Search, Internet Search and YouTube Search, you may select your tools in Bot & Prompt management")
-				if st.session_state.tools == []:
-					st.session_state.tools =  [wiki_search, DuckDuckGoSearchRun(name="Internet Search"), YouTubeSearchTool()]
+				st.session_state.tools =  [wiki_search, DuckDuckGoSearchRun(name="Internet Search"), YouTubeSearchTool()]
 				agent_bot()
 			else:
 				agent_bot()
@@ -475,8 +502,27 @@ def main():
 
 		elif st.session_state.option == 'Application Info':
 			st.subheader(f":green[{st.session_state.option}]") 
-			st.markdown("Application Information here")
-			pass
+			col1, col2 = st.columns([3,1])
+			with col1:
+				st.subheader("Acknowledgement on the use of Generative AI with Large Language Models")
+				initialize_session_state(MENU_FUNCS, True)
+				st.write(ACK)
+				if st.session_state.acknowledgement == True:
+					st.success("You have acknowledged the above information")
+				else:
+					ack = st.checkbox("I acknowledge the above information")
+					if ack:
+						st.session_state.acknowledgement = True
+						set_function_access_for_user(st.session_state.user['id'])
+						st.session_state.start = 1
+						st.rerun()
+					else:
+						st.warning("Please acknowledge the above information before you proceed")
+						initialize_session_state(MENU_FUNCS, True)
+						st.stop()
+					pass
+			with col2:
+				pass
 
 		elif st.session_state.option == 'Logout':
 			if db_was_modified(DEFAULT_DB):
