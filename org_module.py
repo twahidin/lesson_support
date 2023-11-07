@@ -78,10 +78,13 @@ def initialise_admin_account():
 		# Check if the super_admin account exists
 		cursor.execute('SELECT 1 FROM Users WHERE username = ?', (SUPER,))
 		admin_account_exists = cursor.fetchone()
-
+		cursor.execute("SELECT COUNT(*) FROM App_Functions")
+		count = cursor.fetchone()[0]
+		if count == 0:
+			populate_functions(MENU_FUNCS)
 		if admin_account_exists:
 			return
-		populate_functions(MENU_FUNCS)
+		#populate_functions(MENU_FUNCS)
 		# Insert organizations into the Organizations table and retrieve their IDs
 		org_ids = {}
 		for org in EDU_ORGS:

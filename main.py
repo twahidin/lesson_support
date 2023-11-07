@@ -102,14 +102,13 @@ METACOG = config_handler.get_value('constants', 'METACOG')
 ACK = config_handler.get_value('application_agreement', 'ACK')
 
 def is_function_disabled(function_name):
+	#st.write("Function name: ", function_name)
+	#st.write("Function options: ", st.session_state.func_options.get(function_name, True))
 	return st.session_state.func_options.get(function_name, True)
 
 
 def initialize_session_state( menu_funcs, default_value):
 	st.session_state.func_options = {key: default_value for key in menu_funcs.keys()}
-
-
-
 
 def main():
 	try:
@@ -219,7 +218,7 @@ def main():
 					# Using the is_function_disabled function for setting the `disabled` attribute
 				st.session_state.option = sac.menu([
 					sac.MenuItem('Home', icon='house', children=[
-						sac.MenuItem('Class Dashboard', icon='person-circle', disabled=is_function_disabled('Personal Dashboard')),
+						sac.MenuItem('Personal Dashboard', icon='person-circle', disabled=is_function_disabled('Personal Dashboard')),
 						#sac.MenuItem('Class Dashboard', icon='clipboard-data', disabled=is_function_disabled('Class Dashboard')),
 					]),
 					sac.MenuItem('Lesson Assistant', icon='person-fill-gear', children=[
@@ -282,7 +281,7 @@ def main():
 				pass
 		
 		#Personal Dashboard
-		elif st.session_state.option == 'Class Dashboard':
+		elif st.session_state.option == 'Personal Dashboard':
 			st.subheader(f":green[{st.session_state.option}]")
 			if st.session_state.user['profile_id'] == SA:
 				sch_id, msg = process_user_profile(st.session_state.user["profile_id"])
