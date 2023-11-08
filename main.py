@@ -106,6 +106,14 @@ def is_function_disabled(function_name):
 	#st.write("Function options: ", st.session_state.func_options.get(function_name, True))
 	return st.session_state.func_options.get(function_name, True)
 
+def return_function_name(function_name, default_name = ""):
+	if st.session_state.func_options.get(function_name, True):
+		return "-"
+	else:
+		if default_name == "":
+			return function_name
+		else:
+			return default_name
 
 def initialize_session_state( menu_funcs, default_value):
 	st.session_state.func_options = {key: default_value for key in menu_funcs.keys()}
@@ -215,29 +223,31 @@ def main():
 						initialize_session_state(MENU_FUNCS, True)
 					else:
 						set_function_access_for_user(st.session_state.user['id'])
+						#st.write("Function options: ", st.session_state.func_options)
 					# Using the is_function_disabled function for setting the `disabled` attribute
 				st.session_state.option = sac.menu([
 					sac.MenuItem('Home', icon='house', children=[
-						sac.MenuItem('Personal Dashboard', icon='person-circle', disabled=is_function_disabled('Personal Dashboard')),
+						sac.MenuItem(return_function_name('Personal Dashboard'), icon='person-circle', disabled=is_function_disabled('Personal Dashboard')),
 						#sac.MenuItem('Class Dashboard', icon='clipboard-data', disabled=is_function_disabled('Class Dashboard')),
 					]),
 					sac.MenuItem('Lesson Assistant', icon='person-fill-gear', children=[
-						sac.MenuItem('Lesson Collaborator', icon='pencil-square', disabled=is_function_disabled('Lesson Collaborator')),
-						sac.MenuItem('Lesson Commentator', icon='chat-left-dots', disabled=is_function_disabled('Lesson Commentator')),
-						sac.MenuItem('Lesson Designer Map', icon='diagram-2', disabled=is_function_disabled('Lesson Designer Map')),
-						sac.MenuItem('Lesson Design Facilitator (Chatbot)', icon='chat-text', disabled=is_function_disabled('Lesson Design Facilitator')),
+						sac.MenuItem(return_function_name('Lesson Design Facilitator','Lesson Collaborator (Chatbot)'), icon='chat-text', disabled=is_function_disabled('Lesson Design Facilitator')),
+						sac.MenuItem(return_function_name('Lesson Collaborator','Lesson Collaborator (Scaffolded)'), icon='pencil-square', disabled=is_function_disabled('Lesson Collaborator')),
+						sac.MenuItem(return_function_name('Lesson Commentator'), icon='chat-left-dots', disabled=is_function_disabled('Lesson Commentator')),
+						sac.MenuItem(return_function_name('Lesson Designer Map'), icon='diagram-2', disabled=is_function_disabled('Lesson Designer Map')),
+						
 					]),
 					sac.MenuItem('Dialogic Agent', icon='robot', children=[
-						sac.MenuItem('Prototype Chatbot', icon='chat-square-dots', disabled=is_function_disabled('Prototype Chatbot')),
-						sac.MenuItem('Bot & Prompt Management', icon='wrench', disabled=is_function_disabled('Chatbot Management')),
+						sac.MenuItem(return_function_name('Prototype Chatbot'), icon='chat-square-dots', disabled=is_function_disabled('Prototype Chatbot')),
+						sac.MenuItem(return_function_name('Chatbot Management','Bot & Prompt Management'), icon='wrench', disabled=is_function_disabled('Chatbot Management')),
 					]),
 					sac.MenuItem('Knowledge Base Tools', icon='book', children=[
-						sac.MenuItem('Files Management', icon='file-arrow-up', disabled=is_function_disabled('Files management')),
-						sac.MenuItem('Knowledge Base Editor', icon='database-fill-up',disabled=is_function_disabled('KB management')),
+						sac.MenuItem(return_function_name('Files management', 'Files Management'), icon='file-arrow-up', disabled=is_function_disabled('Files management')),
+						sac.MenuItem(return_function_name('KB management', 'Knowledge Base Editor'), icon='database-fill-up',disabled=is_function_disabled('KB management')),
 					]),
 					sac.MenuItem('Organisation Tools', icon='buildings', children=[
-						sac.MenuItem('Org Management', icon='building-gear', disabled=is_function_disabled('Organisation Management')),
-						sac.MenuItem('Users Management', icon='house-gear', disabled=is_function_disabled('School Users Management')),
+						sac.MenuItem(return_function_name( 'Organisation Management','Org Management'), icon='building-gear', disabled=is_function_disabled('Organisation Management')),
+						sac.MenuItem(return_function_name('School Users Management', 'Users Management'), icon='house-gear', disabled=is_function_disabled('School Users Management')),
 					]),
 					sac.MenuItem(type='divider'),
 					sac.MenuItem('Profile Settings', icon='gear'),
@@ -292,7 +302,7 @@ def main():
 			display_vectorstores()
 			vectorstore_selection_interface(st.session_state.user['id'])
 		#Lesson Assistant
-		elif st.session_state.option == "Lesson Collaborator":
+		elif st.session_state.option == "Lesson Collaborator (Scaffolded)":
 			st.subheader(f":green[{st.session_state.option}]")	
 			st.session_state.lesson_col_prompt = lesson_collaborator()
 			if st.session_state.lesson_col_prompt:
@@ -312,7 +322,7 @@ def main():
 			st.subheader(f":green[{st.session_state.option}]")
 			lesson_map_generator()
 
-		elif st.session_state.option == "Lesson Design Facilitator (Chatbot)":
+		elif st.session_state.option == "Lesson Collaborator (Chatbot)":
 			st.subheader(f":green[{st.session_state.option}]")
 			choice = sac.buttons([
 								sac.ButtonsItem(label='Collaborator Mode', icon='person-hearts',color='green'),
