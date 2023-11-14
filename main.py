@@ -415,7 +415,7 @@ def main():
 				update_prompt_template(st.session_state.user['profile_id'], templates)
 				st.subheader("Agent Management")
 				agent_management()
-				if st.session_state.user['porfile_id'] == SA:
+				if st.session_state.user['profile_id'] == SA:
 					st.subheader("OpenAI Chatbot Parameters Settings")
 					bot_settings_interface(st.session_state.user['profile_id'], st.session_state.user['school_id'])	
 			else:
