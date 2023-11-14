@@ -38,10 +38,11 @@ else:
 def bot_settings():
 	with st.form(key='sliders_form'):
 		# Sliders for settings
-		temp = st.slider("Temp", min_value=0.0, max_value=1.0, value=0.5, step=0.01)
-		presence_penalty = st.slider("Presence Penalty", min_value=-2.0, max_value=2.0, value=0.5, step=0.01)
-		frequency_penalty = st.slider("Frequency Penalty", min_value=-2.0, max_value=2.0, value=0.5, step=0.01)
-
+		st.write("Current User Bot Settings")
+		temp = st.slider("Temp", min_value=0.0, max_value=1.0, value=st.session_state.temp, step=0.01)
+		presence_penalty = st.slider("Presence Penalty", min_value=-2.0, max_value=2.0, value=st.session_state.presence_penalty, step=0.01)
+		frequency_penalty = st.slider("Frequency Penalty", min_value=-2.0, max_value=2.0, value=st.session_state.frequency_penalty, step=0.01)
+		chat_memory = st.slider("Chat Memory", min_value=0, max_value=10, value=st.session_state.k_memory, step=1)	
 		# Submit button for the form
 		submit_button = st.form_submit_button(label='Submit')
 
@@ -50,6 +51,7 @@ def bot_settings():
 			st.session_state.temp = temp
 			st.session_state.presence_penalty = presence_penalty
 			st.session_state.frequency_penalty = frequency_penalty
+			st.session_state.k_memory = chat_memory
 			st.success("Parameters saved!")
 
 def store_bot_settings(user_id, temp, presence_penalty, frequency_penalty):

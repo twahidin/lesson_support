@@ -241,6 +241,7 @@ def create_dbs():
             temp REAL,
             presence_penalty REAL,
             frequency_penalty REAL,
+			chat_memory INTEGER,
             FOREIGN KEY(user_id) REFERENCES Users(user_id)
         )
         ''')

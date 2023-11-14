@@ -369,7 +369,7 @@ def lesson_commentator():
 	st.subheader("3. Lesson Plan upload or key in manually")
 	lesson_plan_content = upload_lesson_plan()
 	lesson_plan = st.text_area(
-		"Please provide your lesson plan either upload or type into this text box, including details such as learning objectives, activities, assessment tasks, and any use of educational technology tools.", height=500, value=lesson_plan_content)
+		"Please provide your lesson plan either upload or type into this text box (Max 3000 characters), including details such as learning objectives, activities, assessment tasks, and any use of educational technology tools.", height=500, max_chars=3000, value=lesson_plan_content)
 
 	st.subheader("4. Specific questions that I would like feedback on")
 	feedback = st.text_area(

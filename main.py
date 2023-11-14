@@ -231,10 +231,10 @@ def main():
 						#sac.MenuItem('Class Dashboard', icon='clipboard-data', disabled=is_function_disabled('Class Dashboard')),
 					]),
 					sac.MenuItem('Lesson Assistant', icon='person-fill-gear', children=[
-						sac.MenuItem(return_function_name('Lesson Design Facilitator','Lesson Collaborator (Chatbot)'), icon='chat-text', disabled=is_function_disabled('Lesson Design Facilitator')),
-						sac.MenuItem(return_function_name('Lesson Collaborator','Lesson Collaborator (Scaffolded)'), icon='pencil-square', disabled=is_function_disabled('Lesson Collaborator')),
-						sac.MenuItem(return_function_name('Lesson Commentator'), icon='chat-left-dots', disabled=is_function_disabled('Lesson Commentator')),
-						sac.MenuItem(return_function_name('Lesson Designer Map'), icon='diagram-2', disabled=is_function_disabled('Lesson Designer Map')),
+						sac.MenuItem(return_function_name('Lesson Design Facilitator',LESSON_BOT), icon='chat-text', disabled=is_function_disabled('Lesson Design Facilitator')),
+						sac.MenuItem(return_function_name('Lesson Collaborator',LESSON_COLLAB), icon='pencil-square', disabled=is_function_disabled('Lesson Collaborator')),
+						sac.MenuItem(return_function_name('Lesson Commentator',LESSON_COMMENT), icon='chat-left-dots', disabled=is_function_disabled('Lesson Commentator')),
+						sac.MenuItem(return_function_name('Lesson Designer Map', LESSON_MAP), icon='diagram-2', disabled=is_function_disabled('Lesson Designer Map')),
 						
 					]),
 					sac.MenuItem('Dialogic Agent', icon='robot', children=[
@@ -253,8 +253,8 @@ def main():
 					sac.MenuItem('Profile Settings', icon='gear'),
 					sac.MenuItem('Application Info', icon='info-circle'),
 					sac.MenuItem('Logout', icon='box-arrow-right'),
-				], index=st.session_state.start, format_func='title', open_all=False)
-
+				], index=st.session_state.start, format_func='title', open_all=True)
+		
 		if st.session_state.option == 'Users login':
 				col1, col2 = st.columns([3,4])
 				placeholder = st.empty()
@@ -301,28 +301,9 @@ def main():
 				download_data_table_csv(st.session_state.user["id"], st.session_state.user["school_id"], st.session_state.user["profile_id"])
 			display_vectorstores()
 			vectorstore_selection_interface(st.session_state.user['id'])
-		#Lesson Assistant
-		elif st.session_state.option == "Lesson Collaborator (Scaffolded)":
-			st.subheader(f":green[{st.session_state.option}]")	
-			st.session_state.lesson_col_prompt = lesson_collaborator()
-			if st.session_state.lesson_col_prompt:
-				#st.write("I am here", st.session_state.lesson_col_prompt)
-				lesson_bot(st.session_state.lesson_col_prompt, st.session_state.lesson_collaborator, LESSON_COLLAB)
-			lesson_design_options()
-			
-
-					
-		elif st.session_state.option == "Lesson Commentator":
-			st.subheader(f":green[{st.session_state.option}]")
-			prompt = lesson_commentator()
-			if prompt:
-				lesson_bot(prompt, st.session_state.lesson_commentator, LESSON_COMMENT)
 		
-		elif st.session_state.option == "Lesson Designer Map":
-			st.subheader(f":green[{st.session_state.option}]")
-			lesson_map_generator()
-
-		elif st.session_state.option == "Lesson Collaborator (Chatbot)":
+			
+		elif st.session_state.option == LESSON_BOT:
 			st.subheader(f":green[{st.session_state.option}]")
 			choice = sac.buttons([
 								sac.ButtonsItem(label='Collaborator Mode', icon='person-hearts',color='green'),
@@ -375,6 +356,48 @@ def main():
 					basebot(LESSON_BOT)
 				else:
 					basebot_memory(LESSON_BOT) #chatbot with no knowledge base but with memory
+					
+		elif st.session_state.option == LESSON_COMMENT:
+			st.session_state.start = 5			
+			st.subheader(f":green[{st.session_state.option}]")
+			container1 = st.container()
+			with container1:
+				prompt = lesson_commentator()
+				on = st.toggle(f"Continue Conversation at {LESSON_BOT}")
+				if on:
+					st.session_state.start = 3
+					st.session_state.option = LESSON_BOT
+					container1.empty()
+					st.rerun()
+				if prompt:
+					lesson_bot(prompt, st.session_state.lesson_commentator, LESSON_COMMENT)
+					st.success("Feedback completed")
+		
+		#Lesson Assistant
+		elif st.session_state.option == LESSON_COLLAB:
+			st.session_state.start = 4
+			st.subheader(f":green[{st.session_state.option}]")
+			container = st.container()
+			with container:
+				st.session_state.lesson_col_prompt = lesson_collaborator()
+				on = st.toggle(f"Continue Conversation at {LESSON_BOT}")
+				if on:
+					st.session_state.start = 3
+					st.session_state.option = LESSON_BOT
+					container.empty()
+					st.rerun()
+				if st.session_state.lesson_col_prompt:
+					#st.write("I am here", st.session_state.lesson_col_prompt)
+					lesson_bot(st.session_state.lesson_col_prompt, st.session_state.lesson_collaborator, LESSON_COLLAB)
+					lesson_design_options()
+			
+			
+				
+		elif st.session_state.option == LESSON_MAP:
+			st.subheader(f":green[{st.session_state.option}]")
+			lesson_map_generator()
+
+		
 		elif st.session_state.option == "Prototype Chatbot":
 			if st.session_state.tools == []:
 				st.warning("Loading Wikipedia Search, Internet Search and YouTube Search, you may select your tools in Bot & Prompt management")
@@ -387,13 +410,14 @@ def main():
 			if st.session_state.user['profile_id'] == SA or st.session_state.user['profile_id'] == AD:
 				st.subheader(f":green[{st.session_state.option}]")
 				templates = create_prompt_template(st.session_state.user['id'])
+				st.divider()
 				# st.write("Templates created: ", templates)
 				update_prompt_template(st.session_state.user['profile_id'], templates)
-				st.subheader("OpenAI Chatbot Parameters Settings")
-				bot_settings_interface(st.session_state.user['profile_id'], st.session_state.user['school_id'])
-				st.divider()
 				st.subheader("Agent Management")
 				agent_management()
+				if st.session_state.user['porfile_id'] == SA:
+					st.subheader("OpenAI Chatbot Parameters Settings")
+					bot_settings_interface(st.session_state.user['profile_id'], st.session_state.user['school_id'])	
 			else:
 				st.subheader(f":red[This option is accessible only to administrators only]")
 		
