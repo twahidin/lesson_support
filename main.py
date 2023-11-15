@@ -2,7 +2,7 @@
 import streamlit as st
 from streamlit_antd_components import menu, MenuItem
 import streamlit_antd_components as sac
-from main_bot import basebot_memory, basebot_qa_memory, clear_session_states, search_bot, basebot, basebot_qa
+from main_bot import basebot_memory, basebot_qa_memory, clear_session_states, search_bot, basebot, basebot_qa, complete_my_lesson
 from files_module import display_files,docs_uploader, delete_files
 from kb_module import display_vectorstores, create_vectorstore, delete_vectorstores
 from authenticate import login_function,check_password
@@ -201,6 +201,18 @@ def main():
 		
 		if "button_text" not in st.session_state:
 			st.session_state.button_text = "Cancel"
+		
+		if "data_doc" not in st.session_state:
+			st.session_state.data_doc = ""
+		
+		if "download_response_flag" not in st.session_state:
+			st.session_state.download_response_flag = False
+		
+		if "chatbot_index" not in st.session_state:
+			st.session_state.chatbot_index = 1
+
+		if "chat_response" not in st.session_state:
+			st.session_state.chat_response = ""
 
 		create_dbs()
 		initialise_admin_account()
@@ -309,7 +321,7 @@ def main():
 								sac.ButtonsItem(label='Collaborator Mode', icon='person-hearts',color='green'),
 								sac.ButtonsItem(label='Default', icon='person-fill',color='blue'),
 								sac.ButtonsItem(label='Commentator Mode', icon='person-plus-fill',color='red'),
-							], index=1,format_func='title', align='center', size='small', type='default')
+							], index=st.session_state.chatbot_index,format_func='title', align='center', size='small', type='default')
 			sac.divider(label='Chabot Settings', icon='robot', align='center', direction='horizontal', dashed=False, bold=False)
 
 			if choice == "Collaborator Mode":
@@ -323,21 +335,48 @@ def main():
 			#check if API key is entered
 			with st.expander("Lesson Designer Settings"):
 				vectorstore_selection_interface(st.session_state.user['id'])
-				if st.session_state.vs:#chatbot with knowledge base
-					raw_search = sac.switch(label='Raw Search', value=False, align='start', position='left')
+				#new options --------------------------------------------------------
+				if st.session_state.vs:
+					vs_flag = False
+				else:
+					vs_flag = True
+				options = sac.chip(
+							items=[
+								sac.ChipItem(label='Raw Search', icon='search', disabled=vs_flag),
+								sac.ChipItem(label='Enable Memory', icon='memory'),
+								sac.ChipItem(label='Rating Function', icon='star-fill'),
+								sac.ChipItem(label='Capture Responses', icon='camera-fill'),
+								sac.ChipItem(label='Download Responses', icon='download'),
+							], index=[1, 2, 3], format_func='title', radius='sm', size='sm', align='left', variant='light', multiple=True)
+				# Update state based on new chip selections
+				raw_search = 'Raw Search' in options
+				st.session_state.memoryless = 'Enable Memory' not in options
+				st.session_state.rating = 'Rating Function' in options
+				st.session_state.download_response_flag = 'Capture Responses' in options
+				preview_download_response = 'Download Responses' in options
+
 				clear = sac.switch(label='Clear Chat', value=False, align='start', position='left')
-				if clear == True:	
+				if clear == True:
 					clear_session_states()
-				mem = sac.switch(label='Enable Memory', value=True, align='start', position='left')
-				if mem == True:	
-					st.session_state.memoryless = False
-				else:
-					st.session_state.memoryless = True
-				rating = sac.switch(label='Rate Response', value=True, align='start', position='left')
-				if rating == True:	
-					st.session_state.rating = True
-				else:
-					st.session_state.rating = False
+				if preview_download_response:
+					complete_my_lesson()
+
+
+				#-------------------------old options -------------------------------
+				# if st.session_state.vs:#chatbot with knowledge base
+				# 	raw_search = sac.switch(label='Raw Search', value=False, align='start', position='left')
+				
+				# mem = sac.switch(label='Enable Memory', value=True, align='start', position='left')
+				# if mem == True:	
+				# 	st.session_state.memoryless = False
+				# else:
+				# 	st.session_state.memoryless = True
+				# rating = sac.switch(label='Rate Response', value=True, align='start', position='left')
+				# if rating == True:	
+				# 	st.session_state.rating = True
+				# else:
+				# 	st.session_state.rating = False
+				
 				# vm = sac.switch(label='Visual Mapping', value=False, align='start', position='left', size='small')
 				# if vm == True:	
 				# 	st.session_state.visuals = True
@@ -367,6 +406,8 @@ def main():
 				if on:
 					st.session_state.start = 3
 					st.session_state.option = LESSON_BOT
+					st.session_state.chatbot = st.session_state.commentator_mode
+					st.session_state.chatbot_index = 2
 					container1.empty()
 					st.rerun()
 				if prompt:
@@ -384,6 +425,8 @@ def main():
 				if on:
 					st.session_state.start = 3
 					st.session_state.option = LESSON_BOT
+					st.session_state.chatbot = st.session_state.collaborator_mode
+					st.session_state.chatbot_index = 0
 					container.empty()
 					st.rerun()
 				if st.session_state.lesson_col_prompt:

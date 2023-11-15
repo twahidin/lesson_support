@@ -4,7 +4,7 @@ import streamlit_antd_components as sac
 import tempfile
 from langchain.document_loaders import UnstructuredFileLoader
 from langchain.memory import ConversationBufferWindowMemory
-from main_bot import insert_into_data_table
+from main_bot import insert_into_data_table, add_response
 import openai
 from authenticate import return_api_key
 from datetime import datetime
@@ -230,6 +230,7 @@ def lesson_bot(prompt, prompt_template, bot_name):
 			num_tokens = len(full_response + prompt)*1.3
 			#st.write(num_tokens)
 			insert_into_data_table(now.strftime("%d/%m/%Y %H:%M:%S"),  full_response, prompt, num_tokens, bot_name, feedback_value)
+			st.session_state.data_doc = st.session_state.data_doc + "\n\n" + full_response
 			md_filename = "lp" + st.session_state.user['username'] + ".md"
 			md_filepath = os.path.join("lesson_plan", md_filename)
 			if not os.path.exists("lesson_plan"):
@@ -354,6 +355,8 @@ def lesson_map_generator():
 	except Exception as e:
 		st.error(e)
 
+def count_words(text):
+    return len(text.split())
 
 def lesson_commentator():
 	st.subheader("1. Basic Lesson Information for Feedback")
@@ -368,8 +371,13 @@ def lesson_commentator():
 
 	st.subheader("3. Lesson Plan upload or key in manually")
 	lesson_plan_content = upload_lesson_plan()
+	if lesson_plan_content is not None and lesson_plan_content != "":
+		if count_words(lesson_plan_content) > 1000:
+			st.error("Your lesson plan is too long. Please shorten it to 1000 words or less.")
+			return 
+
 	lesson_plan = st.text_area(
-		"Please provide your lesson plan either upload or type into this text box (Max 3000 characters), including details such as learning objectives, activities, assessment tasks, and any use of educational technology tools.", height=500, max_chars=3000, value=lesson_plan_content)
+		"Please provide your lesson plan either upload or type into this text box (Max 6000 characters), including details such as learning objectives, activities, assessment tasks, and any use of educational technology tools.", height=500, max_chars=6000, value=lesson_plan_content)
 
 	st.subheader("4. Specific questions that I would like feedback on")
 	feedback = st.text_area(

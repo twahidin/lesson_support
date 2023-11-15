@@ -122,7 +122,7 @@ def create_dbs():
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS Data_Table (
             data_id INTEGER PRIMARY KEY,
-            date TEXT NOT NULL UNIQUE,
+            date TEXT,
             user_id INTEGER NOT NULL,
             profile_id INTEGER NOT NULL,
             chatbot_ans TEXT,

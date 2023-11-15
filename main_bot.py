@@ -14,6 +14,9 @@ from k_map import (
 )
 import configparser
 import os
+from Markdown2docx import Markdown2docx
+
+
 config = configparser.ConfigParser()
 config.read('config.ini')
 
@@ -53,6 +56,68 @@ def metacognitive_prompter(full_response):
 		st.image(image, use_column_width=True)
 		#input = map_prompter_with_mermaid_syntax(full_response)
 		#generate_mindmap(input)
+
+def response_download():
+	docx_name = "crp" + st.session_state.user['username'] + ".docx"
+	docx_path = os.path.join("chatbot_response", docx_name)
+	
+	if os.path.exists(docx_path):
+# Provide the docx for download via Streamlit
+		with open(docx_path, "rb") as docx_file:
+			docx_bytes = docx_file.read()
+			st.success("File is ready for downloading")
+			st.download_button(
+				label="Download document as DOCX",
+				data=docx_bytes,
+				file_name=docx_name,
+				mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+			)
+		os.remove(docx_path)
+		st.session_state.button_text = 'Reset'
+	else:
+		st.warning("There is no lesson plan available for download.")
+
+def complete_my_lesson():
+	plan_action = sac.buttons([sac.ButtonsItem(label='Preview Responses', icon='eye', color='#00BFFF'),
+							sac.ButtonsItem(label='Download Responses', icon='file-earmark-arrow-down', color='#40826D'),
+							sac.ButtonsItem(label='Clear Responses', icon='file-earmark-arrow-down', color='#FF7F50')
+								], index=None, format_func='title', size='small',  type='primary')
+	
+	
+	if plan_action == 'Preview Responses':
+		st.write(st.session_state.data_doc)
+
+	elif plan_action == 'Download Responses':
+		st.write("Downloading your lesson plan")
+		md_filename = "crp" + st.session_state.user['username'] + ".md"
+		md_filepath = os.path.join("chatbot_response", md_filename)
+		if not os.path.exists("chatbot_response"):
+			os.makedirs("chatbot_response")
+		with open(md_filepath, 'w', encoding='utf-8') as file:
+			file.write(st.session_state.data_doc)
+		# Convert the markdown file to a docx
+		base_filepath = os.path.join("chatbot_response", "crp" + st.session_state.user['username'])
+		project = Markdown2docx(base_filepath)
+		project.eat_soup()
+		project.save()  # Assuming it saves the file with the same name but a .docx extension
+		response_download()
+	elif plan_action == 'Clear Responses':
+		if st.checkbox("Clear Responses"):
+			st.session_state.data_doc = ""
+			st.success("Responses cleared")
+	
+def add_response(response):
+	# add_response = sac.buttons([sac.ButtonsItem(label='Ignore Response', icon='plus-circle', color='#40826D'), [sac.ButtonsItem(label='Add Response', icon='plus-circle', color='#25C3B0')]
+	# 							], index=None, format_func='title', size='small',type='primary')
+	opt = sac.buttons([sac.ButtonsItem(label='Add Response', color='#40826D')], format_func='title', index=None, size='small',type='primary')
+	
+	# st.write(response)
+	if add_response:
+		st.session_state.data_doc = st.session_state.data_doc + "\n\n" + response
+	
+	return opt
+		
+
 
 #response rating component	
 def rating_component():
@@ -127,7 +192,7 @@ def chat_completion_qa_memory(prompt):
 #integration API call into streamlit chat components with memory and qa
 
 def basebot_qa_memory(bot_name):
-	
+	full_response = ""
 	greetings_str = f"Hi, I am {bot_name}"
 	help_str = "How can I help you today?"
 	# Check if st.session_state.msg exists, and if not, initialize with greeting and help messages
@@ -141,10 +206,17 @@ def basebot_qa_memory(bot_name):
 			{"role": "assistant", "content": greetings_str},
 			{"role": "assistant", "content": help_str}
 		]
-	
+	#lesson collaborator
 	for message in st.session_state.msg:
 		with st.chat_message(message["role"]):
-			st.markdown(message["content"])	
+			st.markdown(message["content"])
+	# #adding on response		
+	# if st.session_state.download_response_flag == True:
+	# 	if st.session_state.msg:  # Check if the list is not empty
+	# 		last_message = st.session_state.msg[-1]  # Access the last message
+	# 		with st.chat_message(last_message["role"]):  # Use the role from the last message
+	# 			st.markdown(last_message["content"])  # Display the content of the last message
+	# 			add_response(last_message["content"])
 	
 	try:
 		if prompt := st.chat_input("Enter your query"):
@@ -171,10 +243,8 @@ def basebot_qa_memory(bot_name):
 			num_tokens = len(full_response + prompt)*1.3
 			#st.write(num_tokens)
 			insert_into_data_table(now.strftime("%d/%m/%Y %H:%M:%S"),  full_response, prompt, num_tokens, bot_name, feedback_value)
-			if st.session_state.visuals == True:
-				metacognitive_prompter(full_response)
-			#metacognitive_prompter(full_response)
-			
+		if st.session_state.download_response_flag == True:
+			st.session_state.chat_response = add_response(full_response)
 			
 			
 	except Exception as e:
@@ -219,6 +289,7 @@ def chat_completion_memory(prompt):
 
 #integration API call into streamlit chat components with memory
 def basebot_memory(bot_name):
+	full_response = ""
 	greetings_str = f"Hi, I am {bot_name}"
 	help_str = "How can I help you today?"
 	# Check if st.session_state.msg exists, and if not, initialize with greeting and help messages
@@ -235,6 +306,12 @@ def basebot_memory(bot_name):
 	for message in st.session_state.msg:
 		with st.chat_message(message["role"]):
 			st.markdown(message["content"])
+	#adding on response
+	
+	# if st.session_state.download_response_flag == True:
+	# 	if st.session_state.msg:  # Check if the list is not empty
+	# 		last_message = st.session_state.msg[-1]  # Access the last message
+	# 		add_response(last_message["content"])
 	try:
 		if prompt := st.chat_input("What is up?"):
 			st.session_state.msg.append({"role": "user", "content": prompt})
@@ -259,8 +336,15 @@ def basebot_memory(bot_name):
 			num_tokens = len(full_response + prompt)*1.3
 			#st.write(num_tokens)
 			insert_into_data_table(now.strftime("%d/%m/%Y %H:%M:%S"),  full_response, prompt, num_tokens, bot_name, feedback_value)
-			if st.session_state.visuals == True:
-				metacognitive_prompter(full_response)
+			# if st.session_state.visuals == True:
+			# 	metacognitive_prompter(full_response)
+			# if st.session_state.visuals == True:
+			# 	metacognitive_prompter(full_response)
+			# #metacognitive_prompter(full_response)
+		if st.session_state.download_response_flag == True:
+			st.session_state.chat_response = add_response(full_response)
+
+		
 
 	except Exception as e:
 		st.error(e)
@@ -286,6 +370,7 @@ def chat_completion(prompt):
 
 #integration API call into streamlit chat components
 def basebot(bot_name):
+	full_response = ""
 	greetings_str = f"Hi, I am {bot_name}"
 	help_str = "How can I help you today?"
 	# Check if st.session_state.msg exists, and if not, initialize with greeting and help messages
@@ -324,8 +409,10 @@ def basebot(bot_name):
 			num_tokens = len(full_response + prompt)*1.3
 			st.session_state.msg.append({"role": "assistant", "content": full_response})
 			insert_into_data_table(now.strftime("%d/%m/%Y %H:%M:%S"),  full_response, prompt, num_tokens, bot_name, feedback_value)
-			if st.session_state.visuals == True:
-				metacognitive_prompter(full_response)
+			# if st.session_state.visuals == True:
+			# 	metacognitive_prompter(full_response)
+		if st.session_state.download_response_flag == True:
+			st.session_state.chat_response = add_response(full_response)
 				
 	except Exception as e:
 		st.error(e)
@@ -371,6 +458,7 @@ def chat_completion_qa(prompt):
 
 #chat completion with vectorstore for streamlit 
 def basebot_qa(bot_name):
+	full_response = ""
 	greetings_str = f"Hi, I am {bot_name}"
 	help_str = "How can I help you today?"
 	# Check if st.session_state.msg exists, and if not, initialize with greeting and help messages
@@ -411,9 +499,11 @@ def basebot_qa(bot_name):
 			num_tokens = len(full_response + prompt)*1.3
 			#st.write(num_tokens)
 			insert_into_data_table(now.strftime("%d/%m/%Y %H:%M:%S"),  full_response, prompt, num_tokens, bot_name, feedback_value)
-			if st.session_state.visuals == True:
-				metacognitive_prompter(full_response)
+			# if st.session_state.visuals == True:
+			# 	metacognitive_prompter(full_response)
 			#metacognitive_prompter(full_response)
+		if st.session_state.download_response_flag == True:
+			st.session_state.chat_response = add_response(full_response)
 			
 	except Exception as e:
 		st.exception(e)
@@ -429,6 +519,7 @@ def return_search_raw_results(prompt):
 		return f"""{ans} \n\n Source: ({source})"""
 
 def search_bot():
+	full_response = ""
 	for message in st.session_state.msg:
 		with st.chat_message(message["role"]):
 			st.markdown(message["content"])
@@ -454,9 +545,11 @@ def search_bot():
 			num_tokens = len(full_response + prompt)*1.3
 			#st.write(num_tokens)
 			insert_into_data_table(now.strftime("%d/%m/%Y %H:%M:%S"),  full_response, prompt, num_tokens, feedback_value)
-			if st.session_state.visuals == True:
-				metacognitive_prompter(full_response)
-			
+			# if st.session_state.visuals == True:
+			# 	metacognitive_prompter(full_response)
+		if st.session_state.download_response_flag == True:
+			st.session_state.chat_response = add_response(full_response)
+
 
 	except Exception as e:
 		st.error(e)
