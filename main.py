@@ -425,11 +425,6 @@ def main():
 			container = st.container()
 			with container:
 				st.session_state.lesson_col_prompt = lesson_collaborator()
-				
-				if st.session_state.lesson_col_prompt:
-					#st.write("I am here", st.session_state.lesson_col_prompt)
-					lesson_bot(st.session_state.lesson_col_prompt, st.session_state.lesson_collaborator, LESSON_COLLAB)
-					lesson_design_options()
 				#on = sac.buttons([sac.ButtonsItem(label=f"Continue Conversation at {LESSON_BOT}", color='#40826D')], format_func='title', index=None, size='small',type='primary')
 				on = sac.switch(label=f"Continue Conversation at {LESSON_BOT}", value=False, align='start', position='left')
 				if on:
@@ -439,6 +434,11 @@ def main():
 					st.session_state.chatbot_index = 0
 					container.empty()
 					st.rerun()
+				if st.session_state.lesson_col_prompt:
+					#st.write("I am here", st.session_state.lesson_col_prompt)
+					lesson_bot(st.session_state.lesson_col_prompt, st.session_state.lesson_collaborator, LESSON_COLLAB)
+					lesson_design_options()
+				
 			
 			
 				
