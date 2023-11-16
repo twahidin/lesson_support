@@ -356,7 +356,7 @@ def lesson_map_generator():
 		st.error(e)
 
 def count_words(text):
-    return len(text.split())
+    return len(text)
 
 def lesson_commentator():
 	st.subheader("1. Basic Lesson Information for Feedback")
@@ -372,8 +372,8 @@ def lesson_commentator():
 	st.subheader("3. Lesson Plan upload or key in manually")
 	lesson_plan_content = upload_lesson_plan()
 	if lesson_plan_content is not None and lesson_plan_content != "":
-		if count_words(lesson_plan_content) > 1000:
-			st.error("Your lesson plan is too long. Please shorten it to 1000 words or less.")
+		if count_words(lesson_plan_content) > 6000:
+			st.error("Your lesson plan is too long. Please shorten it to 6000 chars or less.")
 			return 
 
 	lesson_plan = st.text_area(
@@ -390,9 +390,9 @@ def lesson_commentator():
 	build = sac.buttons([
 				sac.ButtonsItem(label='Feedback', icon='check-circle-fill', color = 'green'),
 				sac.ButtonsItem(label='Cancel', icon='x-circle-fill', color='red'),
-			], label=None, index=1, format_func='title', align='center', position='top', size='default', direction='horizontal', shape='round', type='default', compact=False)
+			], label=None, index=None, format_func='title', align='center', position='top', size='default', direction='horizontal', shape='round', type='default', compact=False)
 
-	if build != 'Cancel':
+	if build == 'Feedback':
 		feedback_template = f"""Imagine you are an experienced teacher. I'd like feedback on the lesson I've uploaded:
 			Subject: {subject}
 			Topic: {topic}
@@ -406,7 +406,8 @@ def lesson_commentator():
 		st.success("Your lesson plan has been submitted for feedback!")
 		return feedback_template
 
-	return False
+	else:
+		return False
 
 def generate_random_key(length=4):
     """Generate a random alphanumeric key of given length."""

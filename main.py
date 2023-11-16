@@ -401,8 +401,9 @@ def main():
 			st.subheader(f":green[{st.session_state.option}]")
 			container1 = st.container()
 			with container1:
-				prompt = lesson_commentator()
-				on = st.toggle(f"Continue Conversation at {LESSON_BOT}")
+				#on = sac.buttons([sac.ButtonsItem(label=f"Continue Conversation at {LESSON_BOT}", color='#40826D')], format_func='title', index=None, size='small',type='primary')
+				st.session_state.lesson_col_prompt = lesson_commentator()
+				on = sac.switch(label=f"Continue Conversation at {LESSON_BOT}", value=False, align='start', position='left')
 				if on:
 					st.session_state.start = 3
 					st.session_state.option = LESSON_BOT
@@ -410,9 +411,12 @@ def main():
 					st.session_state.chatbot_index = 2
 					container1.empty()
 					st.rerun()
-				if prompt:
-					lesson_bot(prompt, st.session_state.lesson_commentator, LESSON_COMMENT)
+				if st.session_state.lesson_col_prompt:
+					lesson_bot(st.session_state.lesson_col_prompt, st.session_state.lesson_commentator, LESSON_COMMENT)
 					st.success("Feedback completed")
+
+				
+				
 		
 		#Lesson Assistant
 		elif st.session_state.option == LESSON_COLLAB:
@@ -421,7 +425,13 @@ def main():
 			container = st.container()
 			with container:
 				st.session_state.lesson_col_prompt = lesson_collaborator()
-				on = st.toggle(f"Continue Conversation at {LESSON_BOT}")
+				
+				if st.session_state.lesson_col_prompt:
+					#st.write("I am here", st.session_state.lesson_col_prompt)
+					lesson_bot(st.session_state.lesson_col_prompt, st.session_state.lesson_collaborator, LESSON_COLLAB)
+					lesson_design_options()
+				#on = sac.buttons([sac.ButtonsItem(label=f"Continue Conversation at {LESSON_BOT}", color='#40826D')], format_func='title', index=None, size='small',type='primary')
+				on = sac.switch(label=f"Continue Conversation at {LESSON_BOT}", value=False, align='start', position='left')
 				if on:
 					st.session_state.start = 3
 					st.session_state.option = LESSON_BOT
@@ -429,10 +439,6 @@ def main():
 					st.session_state.chatbot_index = 0
 					container.empty()
 					st.rerun()
-				if st.session_state.lesson_col_prompt:
-					#st.write("I am here", st.session_state.lesson_col_prompt)
-					lesson_bot(st.session_state.lesson_col_prompt, st.session_state.lesson_collaborator, LESSON_COLLAB)
-					lesson_design_options()
 			
 			
 				

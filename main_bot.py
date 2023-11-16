@@ -109,7 +109,7 @@ def complete_my_lesson():
 def add_response(response):
 	# add_response = sac.buttons([sac.ButtonsItem(label='Ignore Response', icon='plus-circle', color='#40826D'), [sac.ButtonsItem(label='Add Response', icon='plus-circle', color='#25C3B0')]
 	# 							], index=None, format_func='title', size='small',type='primary')
-	opt = sac.buttons([sac.ButtonsItem(label='Add Response', color='#40826D')], format_func='title', index=None, size='small',type='primary')
+	opt = sac.buttons([sac.ButtonsItem(label='Save Response', color='#40826D')], format_func='title', index=None, size='small',type='primary')
 	
 	# st.write(response)
 	if add_response:
