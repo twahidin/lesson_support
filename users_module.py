@@ -241,6 +241,9 @@ def update_prompt_template(profile_id, templates):
             # Fetch all schools
             cursor.execute("SELECT school_id, school_name FROM Schools")
             schools = cursor.fetchall()
+            if not schools:
+                st.error("No schools available. Exiting.")
+                return
             school_choices = {school[1]: school[0] for school in schools}
             selected_school_name = st.selectbox("Select School:", list(school_choices.keys()))
             selected_school_id = school_choices[selected_school_name]
