@@ -177,7 +177,7 @@ def create_dbs():
             vs_id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER NOT NULL,
             vectorstore_name TEXT NOT NULL, 
-            data BLOB NOT NULL,
+            documents TEXT NOT NULL,
             subject INTEGER,
             topic INTEGER,
             sharing_enabled BOOLEAN NOT NULL DEFAULT 0,

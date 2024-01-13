@@ -1,11 +1,9 @@
 import sqlite3
-from authenticate import hash_password
 import streamlit as st
-import pandas as pd
-import pickle
 import configparser
 import os
 import ast
+from basecode.kb_module import load_vectorstore
 
 class ConfigHandler:
 	def __init__(self):
@@ -241,8 +239,9 @@ def update_prompt_template(profile_id, templates):
             # Fetch all schools
             cursor.execute("SELECT school_id, school_name FROM Schools")
             schools = cursor.fetchall()
+            # Check if there are no schools and exit if true
             if not schools:
-                st.error("No schools available. Exiting.")
+                st.error("No schools available")
                 return
             school_choices = {school[1]: school[0] for school in schools}
             selected_school_name = st.selectbox("Select School:", list(school_choices.keys()))
@@ -664,7 +663,7 @@ def load_and_use_vectorstore(vs_id):
         
         # Fetch the vectorstore_name and data for the provided vs_id
         cursor.execute('''
-            SELECT vectorstore_name, data
+            SELECT vectorstore_name, documents
             FROM Vector_Stores 
             WHERE vs_id = ?
         ''', (vs_id,))
@@ -675,60 +674,19 @@ def load_and_use_vectorstore(vs_id):
             st.warning("Vectorstore not found for the given ID.")
             return
 
-        vectorstore_name, data_blob = vectorstore_data
+        vectorstore_name, documents = vectorstore_data
 
-        if not data_blob:
-            st.warning("Vectorstore data not found.")
+        if not documents:
+            st.warning("Vectorstore documents not found.")
             return
 
-        # Deserialize the blob data (assuming it's pickled)
-        vector_data = pickle.loads(data_blob)
+        #convert the documents json to document objects
+        
 
         # Set the data and the associated name to Streamlit's session state
-        st.session_state.vs = vector_data
+        st.session_state.vs = load_vectorstore(documents, vectorstore_name)
         st.session_state.current_model = vectorstore_name
 
-
-# def load_and_fetch_vectorstore_for_user(user_id):
-#     """
-#     Load the associated vector store ID and data into the session state for the logged-in user. cannot use it for selection
-#     """
-#     with sqlite3.connect(WORKING_DATABASE) as conn:
-#         cursor = conn.cursor()
-        
-#         # Fetch associated vs_id and vectorstore_name for the user
-#         cursor.execute('''
-#             SELECT uvs.vs_id, vs.vectorstore_name
-#             FROM User_VectorStores uvs
-#             INNER JOIN Vector_Stores vs ON uvs.vs_id = vs.vs_id
-#             WHERE uvs.user_id = ?
-#         ''', (user_id,))
-        
-#         vectorstore_data = cursor.fetchone()
-        
-#         if not vectorstore_data:
-#             st.warning("No vectorstore associated with the user.")
-#             return
-
-#         vs_id, vectorstore_name = vectorstore_data
-
-#         # Fetch the actual vector data using the vs_id and user_id
-#         cursor.execute('''
-#             SELECT data FROM Vector_Stores WHERE vs_id=? AND user_id=?''', 
-#             (vs_id, user_id)
-#         )
-
-#         data_blob = cursor.fetchone()
-
-#         if not data_blob:
-#             st.warning("Vectorstore data not found.")
-#             return
-
-#         vector_data = pickle.loads(data_blob[0])
-
-#         # Set data to Streamlit's session state
-#         st.session_state.vs = vector_data
-#         st.session_state.current_model = vectorstore_name
 
 def load_and_fetch_vectorstore_for_user(user_id):
     """
@@ -756,23 +714,23 @@ def load_and_fetch_vectorstore_for_user(user_id):
 
             # Fetch the actual vector data using the vs_id
             cursor.execute('''
-                SELECT data FROM Vector_Stores WHERE vs_id=?''', 
+                SELECT documents FROM Vector_Stores WHERE vs_id=?''', 
                 (vs_id,)
             )
 
-            data_blob = cursor.fetchone()
+            documents = cursor.fetchone()
 
-            if not data_blob:
+            if not documents:
                 st.warning("Vectorstore data not found.")
                 return None
 
-            vector_data = pickle.loads(data_blob[0])
+            vs = load_vectorstore(documents[0], vectorstore_name)
 
             # Set data to Streamlit's session state
-            st.session_state['vs'] = vector_data
+            st.session_state['vs'] = vs
             st.session_state['current_model'] = vectorstore_name
 
-            return vector_data
+            return vs
     except sqlite3.DatabaseError as e:
         st.error(f"An error occurred while accessing the database: {e}")
         return None

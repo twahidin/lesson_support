@@ -6,4 +6,5 @@ database/
 lesson_plan/
 output.docx
 output.md
+__pycache__/
 *.zip

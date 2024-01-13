@@ -1,19 +1,19 @@
 import streamlit as st
 import openai
-from authenticate import return_api_key
+from basecode.authenticate import return_api_key
 from langchain.tools import YouTubeSearchTool
-from kb_module import display_vectorstores
-from users_module import vectorstore_selection_interface
+from basecode.kb_module import display_vectorstores
+from basecode.users_module import vectorstore_selection_interface
 import os
 
 from langchain.agents import ConversationalChatAgent, AgentExecutor
 from langchain.callbacks import StreamlitCallbackHandler
-from langchain.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from langchain.memory import ConversationBufferMemory
-from langchain.memory.chat_message_histories import StreamlitChatMessageHistory
+from langchain.memory import StreamlitChatMessageHistory
 from langchain.tools import DuckDuckGoSearchRun
 from langchain.tools import WikipediaQueryRun
-from langchain.utilities import WikipediaAPIWrapper
+from langchain_community.utilities import WikipediaAPIWrapper
 from langchain.agents import tool
 import json
 
@@ -46,6 +46,9 @@ def dalle_image_generator(query):
 	)
 	image_url = response['data'][0]['url']
 	return image_url
+
+
+#customise more tools for your agent
 
 def agent_bot():
 	st.subheader("Smart Bot with Tools")
@@ -91,6 +94,7 @@ def agent_bot():
 			memory=memory,
 			return_intermediate_steps=True,
 			handle_parsing_errors=True,
+			
 		)
 		with st.chat_message("assistant"):
 			st_cb = StreamlitCallbackHandler(st.container(), expand_new_thoughts=False)
@@ -99,7 +103,8 @@ def agent_bot():
 			st.session_state.steps[str(len(msgs.messages) - 1)] = response[
 				"intermediate_steps"
 			]
-
+			
+#create more tools for your agent here
 def agent_management():
 	display_vectorstores()
 	vectorstore_selection_interface(st.session_state.user['id'])
@@ -131,4 +136,5 @@ def agent_management():
 		# Map selected tool names to their respective functions
 		tools = [all_tools[name] for name in selected_tool_names]
 		st.session_state.tools = tools
+		st.write("Selected Tools:", st.session_state.tools)
 		

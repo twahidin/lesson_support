@@ -6,6 +6,10 @@ import os
 import zipfile
 import boto3
 
+if "S3_BUCKET" in st.secrets:
+    S3_BUCKET = st.secrets["S3_BUCKET"]
+else:
+    S3_BUCKET = "Default"
 
 # Create or check for the 'database' directory in the current working directory
 cwd = os.getcwd()
@@ -240,7 +244,7 @@ def upload_s3_database():
         zip_directory('database', 'database.zip')
         st.write('Folder zipped successfully!')
         #st.download_button(label='Download zipped folder', data=open('database.zip', 'rb'), file_name='database.zip')
-        upload_to_s3('database.zip', 'moebotsqldb', DB_ZIP_DIRECTORY)
+        upload_to_s3('database.zip', S3_BUCKET, DB_ZIP_DIRECTORY)
         st.write('Uploaded to S3 successfully!')
 
 
@@ -250,7 +254,7 @@ def backup_s3_database():
     zip_directory('database', 'database.zip')
     st.write('Folder zipped successfully!')
     #st.download_button(label='Download zipped folder', data=open('database.zip', 'rb'), file_name='database.zip')
-    upload_to_s3('database.zip', 'moebotsqldb', DB_ZIP_DIRECTORY)
+    upload_to_s3('database.zip', S3_BUCKET, DB_ZIP_DIRECTORY)
     st.write('Uploaded to S3 successfully!')
 
 # # New function to handle downloading from S3 and unzipping
@@ -260,7 +264,7 @@ def backup_s3_database():
 #         DB_ZIP_DIRECTORY = os.path.join(cwd, "database.zip")
         
 #         # Downloading
-#         download_from_s3('moebotsqldb', DB_ZIP_DIRECTORY, 'database.zip')
+#         download_from_s3(S3_BUCKET, DB_ZIP_DIRECTORY, 'database.zip')
 #         st.write('Downloaded from S3 successfully!')
         
 #         # Unzipping
@@ -274,7 +278,7 @@ def download_from_s3_and_unzip():
         DB_ZIP_DIRECTORY = os.path.join(cwd, "database.zip")
         
         # Downloading
-        download_from_s3('moebotsqldb', DB_ZIP_DIRECTORY, 'database.zip')
+        download_from_s3(S3_BUCKET, DB_ZIP_DIRECTORY, 'database.zip')
         st.write('Downloaded from S3 successfully!')
 
         with st.spinner("Unzipping..."):
@@ -300,7 +304,7 @@ def download_from_s3_and_unzip():
         DB_ZIP_DIRECTORY = os.path.join(cwd, "database.zip")
         
         # Downloading
-        download_from_s3('moebotsqldb', DB_ZIP_DIRECTORY, 'database.zip')
+        download_from_s3(S3_BUCKET, DB_ZIP_DIRECTORY, 'database.zip')
         st.write('Downloaded from S3 successfully!')
 
         # Wait for a few seconds to ensure the file exists
