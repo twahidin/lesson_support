@@ -530,15 +530,13 @@ def main():
 
                 options = sac.chip(
                     items=[
-                        sac.ChipItem(
-                            label="Raw Search", icon="search", disabled=vs_flag
-                        ),
+                        sac.ChipItem(label="Raw Search", icon="search", disabled=vs_flag),
                         sac.ChipItem(label="Enable Memory", icon="memory"),
-                        sac.ChipItem(label="Rating Function", icon="star-fill"),
+                        #sac.ChipItem(label="Rating Function", icon="star-fill"),
                         sac.ChipItem(label="Capture Responses", icon="camera-fill"),
                         sac.ChipItem(label="Download Responses", icon="download"),
                     ],
-                    index=[1, 2, 3],
+                    index=[1, 2],
                     format_func="title",
                     radius="sm",
                     size="sm",
@@ -643,11 +641,11 @@ def main():
                             label="Raw Search", icon="search", disabled=vs_flag
                         ),
                         sac.ChipItem(label="Enable Memory", icon="memory"),
-                        sac.ChipItem(label="Rating Function", icon="star-fill"),
+                        #sac.ChipItem(label="Rating Function", icon="star-fill"),
                         sac.ChipItem(label="Capture Responses", icon="camera-fill"),
                         sac.ChipItem(label="Download Responses", icon="download"),
                     ],
-                    index=[1, 2, 3],
+                    index=[1, 2],
                     format_func="title",
                     radius="sm",
                     size="sm",

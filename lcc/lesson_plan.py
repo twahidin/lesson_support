@@ -86,10 +86,10 @@ def lesson_bot(prompt, prompt_template, bot_name):
             for response in template_prompt(prompt, reference_prompt + prompt_template):
                 full_response += response.choices[0].delta.content or ""
                 message_placeholder.markdown(full_response + "▌")
-            if bot_name == LESSON_COLLAB:
-                feedback_value = generator_rating()
-            else:
-                feedback_value = commentator_rating()
+            # if bot_name == LESSON_COLLAB:
+            #     feedback_value = generator_rating()
+            # else:
+            #     feedback_value = commentator_rating()
             message_placeholder.markdown(full_response)
             st.session_state.msg.append({"role": "assistant", "content": full_response})
             st.session_state["memory"].save_context(
@@ -107,7 +107,7 @@ def lesson_bot(prompt, prompt_template, bot_name):
                 prompt,
                 num_tokens,
                 bot_name,
-                feedback_value,
+                #feedback_value,
             )
             st.session_state.data_doc = (
                 st.session_state.data_doc + "\n\n" + full_response

@@ -229,10 +229,10 @@ def basebot_qa_memory(bot_name):
 			num_tokens = len(full_response + prompt)*1.3
 			#need to store num_tokens,full_response, prompt, bot_name, now and all in a dictionary
 			#if user press feedback it will look for the last entry in the database of the user and update the rating for this table
-			if st.session_state.rating == True:
-				feedback_value = rating_component()
-			else:
-				feedback_value = 0
+			# if st.session_state.rating == True:
+			# 	feedback_value = rating_component()
+			# else:
+			# 	feedback_value = 0
 			#st.write(num_tokens)
 			insert_into_data_table(now.strftime("%d/%m/%Y %H:%M:%S"),  full_response, prompt, num_tokens, bot_name)
 		if st.session_state.download_response_flag == True:
@@ -324,10 +324,10 @@ def basebot_memory(bot_name):
 			 # Insert data into the table
 			now = datetime.now() # Using ISO format for date
 			num_tokens = len(full_response + prompt)*1.3
-			if st.session_state.rating == True:
-				feedback_value = rating_component()
-			else:
-				feedback_value = 0
+			# if st.session_state.rating == True:
+			# 	feedback_value = rating_component()
+			# else:
+			# 	feedback_value = 0
 			insert_into_data_table(now.strftime("%d/%m/%Y %H:%M:%S"),  full_response, prompt, num_tokens, bot_name)
 		if st.session_state.download_response_flag == True:
 			st.session_state.chat_response = add_response(full_response)
@@ -389,10 +389,10 @@ def basebot(bot_name):
 					message_placeholder.markdown(full_response + "▌")
 				message_placeholder.markdown(full_response)
 				#Response Rating
-				if st.session_state.rating == True:
-					feedback_value = rating_component()
-				else:
-					feedback_value = 0
+				# if st.session_state.rating == True:
+				# 	feedback_value = rating_component()
+				# else:
+				# 	feedback_value = 0
 				now = datetime.now() # Using ISO format for date
 			num_tokens = len(full_response + prompt)*1.3
 			st.session_state.msg.append({"role": "assistant", "content": full_response})
@@ -477,10 +477,10 @@ def basebot_qa(bot_name):
 					message_placeholder.markdown(full_response + "▌")
 				message_placeholder.markdown(full_response)
 				#Response Rating
-				if st.session_state.rating == True:
-					feedback_value = rating_component()
-				else:
-					feedback_value = 0
+				# if st.session_state.rating == True:
+				# 	feedback_value = rating_component()
+				# else:
+				# 	feedback_value = 0
 			st.session_state.msg.append({"role": "assistant", "content": full_response})
 			 # Insert data into the table
 			now = datetime.now() # Using ISO format for date
@@ -522,10 +522,10 @@ def search_bot():
 				full_response = ""
 				full_response = return_search_raw_results(prompt)
 				message_placeholder.markdown(full_response)
-				if st.session_state.rating == True:
-					feedback_value = rating_component()
-				else:
-					feedback_value = 0
+				# if st.session_state.rating == True:
+				# 	feedback_value = rating_component()
+				# else:
+				# 	feedback_value = 0
 				#message_placeholder.markdown(source)
 			st.session_state.msg.append({"role": "assistant", "content": full_response})
 			 # Insert data into the table
