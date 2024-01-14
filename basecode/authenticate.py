@@ -82,7 +82,42 @@ def check_password(username, password):
         return True
     else:
         return False
-
+    
+#checking if school API key exist in st.secrets
+def check_sch_exist(org):
+    try:
+        secret_key = org + "_key"
+        if secret_key in st.secrets:
+            return secret_key
+        else:
+            return False
+    except Exception as e:
+        st.warning(f"Error checking org secrets: {e}")
+        return False
 
 def return_api_key():
-    return st.secrets["openai_key"]
+    if 'user' not in st.session_state:
+        return st.secrets["openai_key"]
+    else:
+        if st.session_state.user['school_id'] == None:
+            return st.secrets["openai_key"]
+        else:
+            with sqlite3.connect(WORKING_DATABASE) as conn:
+                cursor = conn.cursor()
+                cursor.execute('SELECT school_name FROM Schools WHERE school_id = ?', (st.session_state.user['school_id'],))
+                school_key = cursor.fetchone()
+            #st.write(school_key[0])
+            if school_key[0]:
+                sch_name = school_key[0].lower().replace(" ", "")
+                #print(sch_name)
+                school_key = check_sch_exist(sch_name)
+                #print(school_key)
+                if school_key:
+                    #print("school key exist")
+                    return st.secrets[school_key]
+                    
+                else:
+                    return st.secrets["openai_key"]
+            else:
+                return st.secrets["openai_key"] 
+    
