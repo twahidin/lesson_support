@@ -353,6 +353,27 @@ def main():
                                 # ),
                             ],
                         ),
+                        # sac.MenuItem(
+                        #     "AI Chatbot",
+                        #     icon="robot",
+                        #     children=[
+                        #         sac.MenuItem(
+                        #             return_function_name(
+                        #                 "AI Chatbot", "AI Chatbot (ZeroCode)"
+                        #             ),
+                        #             icon="chat-dots",
+                        #             disabled=is_function_disabled("AI Chatbot"),
+                        #         ),
+                        #         sac.MenuItem(
+                        #             return_function_name(
+                        #                 "Agent Chatbot", "Agent Chatbot"
+                        #             ),
+                        #             icon="chat-dots",
+                        #             disabled=is_function_disabled("Agent Chatbot"),
+                        #         ),
+                        #     ],
+                        # ),
+
                         sac.MenuItem(
                             "Types of ChatBots",
                             icon="person-fill-gear",
