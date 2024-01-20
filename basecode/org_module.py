@@ -320,7 +320,7 @@ def remove_or_reassign_teacher_ui(school_id):
 			else:
 				#teacher_id = cursor.fetchone()[0]
 				teacher_id = teacher_record[0]
-				st.write("teacher", teacher_id)
+				#st.write("teacher", teacher_id)
 
 			if remove_assignment:
 				# Remove teacher from all currently assigned classes
@@ -344,7 +344,9 @@ def remove_or_reassign_teacher_ui(school_id):
 						FROM Teacher_Assignments
 						WHERE teacher_id = ? AND class_id = ?
 					""", (teacher_id, class_id))
-					already_assigned = cursor.fetchone()[0] > 0
+					assigned = cursor.fetchone()
+					count = assigned[0]
+					already_assigned = count > 0
 
 					# If not already assigned, then proceed with the assignment
 					if not already_assigned:
