@@ -70,7 +70,7 @@ def lesson_bot(prompt, prompt_template, bot_name):
         if prompt:
             # st.write("I am inside", st.session_state.lesson_col_prompt)
             if "memory" not in st.session_state:
-                st.session_state.memory = ConversationBufferWindowMemory(k=5)
+                st.session_state.memory = ConversationBufferWindowMemory(k=st.secrets["default_k_memory"]) 
             st.session_state.msg.append({"role": "user", "content": prompt})
             message_placeholder = st.empty()
             # check if there is any knowledge base
